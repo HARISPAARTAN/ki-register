@@ -11,3 +11,16 @@ Status: in Arbeit.
 - Die Ansicht "Meine Anträge" entfällt in Meilenstein 1: `nst_antragsteller` ist ein Nachschlagefeld auf Mitarbeiter, nicht der angemeldete Benutzer. Die Canvas-App zur Anmeldung in Meilenstein 2 zeigt die eigenen Anträge der Benutzerin oder des Benutzers.
 - In Meilenstein 1 hat nur das KI-System ein ausdrückliches Hauptformular; alle übrigen Tabellen verwenden das erzeugte Standardformular.
 - Diese Punkte werden in ADR-002 übernommen.
+
+## Inbetriebnahme (Entwicklungsumgebung)
+
+Einmalig, durch die Eigentümerin oder den Eigentümer nach `az login`:
+
+1. `bash tools/setup_app_registration.sh` legt die App-Registrierung `ki-register-automation` an und gibt Mandanten-ID, Client-ID und das Geheimnis (einmalig) aus. Die Werte kommen in die lokale, git-ignorierte `.env` (Vorlage: `.env.example`), nie in einen Chat.
+2. `uv run --env-file .env kiregister bootstrap --env dev` (und `--env test`) legt den Anwendungsbenutzer mit der Rolle Systemadministrator an; dafür wird die Azure-CLI-Sitzung der Eigentümerin oder des Eigentümers genutzt.
+3. `uv run --env-file .env kiregister apply --env dev --only metadata` legt Auswahlfelder, Tabellen, Spalten und Beziehungen in der Lösung `NordsternKIRegister` an; ein zweiter Lauf legt nichts mehr an.
+4. Integrationstests: `uv run --env-file .env pytest tests/integration -m dataverse -v`.
+
+## Setup (English)
+
+Once, by the owner after `az login`: run `tools/setup_app_registration.sh`, put tenant ID, client ID and secret into the git-ignored `.env`, then `kiregister bootstrap --env dev|test` (creates the application user with System Administrator via the owner's Azure CLI token) and `kiregister apply --env dev --only metadata` (idempotent). Integration tests: `pytest tests/integration -m dataverse`.

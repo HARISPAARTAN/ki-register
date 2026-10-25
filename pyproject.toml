@@ -20,7 +20,7 @@ ignore = ["E501"]
 
 [tool.pytest.ini_options]
 markers = ["dataverse: needs a Dataverse environment (DATAVERSE_URL_DEV)"]
-addopts = "-m 'not dataverse'"
+addopts = "-m 'not dataverse' --import-mode=importlib"
 testpaths = ["tests"]
 
 [build-system]
