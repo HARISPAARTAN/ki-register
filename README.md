@@ -32,14 +32,14 @@ flowchart LR
     end
     defs --> pkg
     seed --> pkg
-    pkg -->|"bootstrap, apply, seed, verify über die Web API"| devsol
-    devsol -->|"export-solution.yml: pac export und unpack, Pull Request"| src
-    src -->|"import-dev.yml: unmanaged"| devsol
-    src -->|"deploy-test.yml bei Tag v*: pac pack managed und import"| testsol
-    pkg -->|"verify nur Lösungskomponenten"| testsol
-    wf -.->|"führt aus"| sp
-    sp -.->|"Dienstprinzipal"| devsol
-    sp -.->|"Dienstprinzipal"| testsol
+    pkg -->|"apply, seed, verify (Web API)"| devsol
+    devsol -->|"export-solution.yml"| src
+    src -->|"import-dev.yml"| devsol
+    src -->|"deploy-test.yml (Tag v*)"| testsol
+    pkg -->|"verify (Lösungskomponenten)"| testsol
+    wf -.-> sp
+    sp -.-> devsol
+    sp -.-> testsol
 ```
 
 Die TOML-Dateien sind die Quelle der Wahrheit; `solution/src` ist der Export daraus plus die Ergänzungen, die sich nur über den Lösungsimport setzen lassen (ADR-002, ADR-003). Das Datenmodell steht in [docs/erd.md](docs/erd.md).
