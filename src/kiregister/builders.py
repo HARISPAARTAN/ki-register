@@ -22,6 +22,12 @@ def _guid(*parts: object) -> str:
     return "{" + str(uuid.uuid5(uuid.NAMESPACE_URL, "kiregister:" + ":".join(str(p) for p in parts))).upper() + "}"
 
 
+def _labels(de: str, en: str | None = None) -> str:
+    """FormXML <labels> with a German (1031) and an English (1033) label; same text when no English is given."""
+    return (f'<labels><label description="{_attr(de)}" languagecode="{LCID_DE}" />'
+            f'<label description="{_attr(en or de)}" languagecode="{LCID_EN}" /></labels>')
+
+
 def label(de: str, en: str | None = None) -> dict:
     return {"@odata.type": ODATA + "Label", "LocalizedLabels": [
         {"@odata.type": ODATA + "LocalizedLabel", "Label": de, "LanguageCode": LCID_DE},
@@ -49,7 +55,7 @@ def table_payload(table: Table) -> dict:
                "DisplayName": label(table.primary.display)}
     return {"@odata.type": ODATA + "EntityMetadata", "SchemaName": table.schema, "DisplayName": label(table.display, table.display_en),
             "DisplayCollectionName": label(table.plural, table.plural_en), "Description": label(table.display),
-            "OwnershipType": "UserOwned", "HasActivities": False, "HasNotes": True,
+            "OwnershipType": "UserOwned", "HasActivities": False, "HasNotes": table.notes,
             "IsAuditEnabled": _managed_bool(table.audit, "canmodifyauditsettings"), "Attributes": [primary]}
 
 
@@ -65,7 +71,7 @@ def column_payload(table: Table, col: Column, choice_ids: dict[str, str]) -> dic
         common["IsSecured"] = True
     t = col.type
     if t in ("string", "autonumber", "url", "email"):
-        p = {"@odata.type": ODATA + "StringAttributeMetadata", "MaxLength": col.length if t == "string" else 100,
+        p = {"@odata.type": ODATA + "StringAttributeMetadata", "MaxLength": col.length if t == "string" else {"autonumber": 100, "url": 500, "email": 200}[t],
              "FormatName": {"Value": {"string": "Text", "autonumber": "Text", "url": "Url", "email": "Email"}[t]}, **common}
         if t == "url":
             p["Format"] = "Url"
@@ -113,7 +119,7 @@ def _choice_of_column(defs: Definitions, table: str, column: str) -> str | None:
     return col.choice if col and col.type in ("choice", "multichoice") else None
 
 
-def fetch_xml(view: View, defs: Definitions, option_prefix: int = 58000) -> str:
+def fetch_xml(view: View, defs: Definitions, option_prefix: int) -> str:
     t = defs.table(view.table)
     id_attr = f"{t.schema}id"
     attrs = "".join(f'<attribute name="{c}" />' for c in dict.fromkeys([id_attr, *view.columns]))
@@ -122,18 +128,18 @@ def fetch_xml(view: View, defs: Definitions, option_prefix: int = 58000) -> str:
         choice = _choice_of_column(defs, view.table, f.column)
         vals = [str(choice_value(defs, choice, v, option_prefix)) if choice else v for v in f.values]
         if f.op == "in":
-            conds.append(f'<condition attribute="{f.column}" operator="in">' + "".join(f"<value>{v}</value>" for v in vals) + "</condition>")
+            conds.append(f'<condition attribute="{f.column}" operator="in">' + "".join(f"<value>{escape(v)}</value>" for v in vals) + "</condition>")
         else:
-            conds.append(f'<condition attribute="{f.column}" operator="{f.op}" value="{vals[0]}" />')
+            conds.append(f'<condition attribute="{f.column}" operator="{f.op}" value="{_attr(vals[0])}" />')
     filt = f'<filter type="and">{"".join(conds)}</filter>' if conds else ""
     order = "".join(f'<order attribute="{o}" descending="false" />' for o in view.order)
     return f'<fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false"><entity name="{t.schema}">{attrs}{filt}{order}</entity></fetch>'
 
 
-def layout_xml(view: View, defs: Definitions) -> str:
+def layout_xml(view: View, defs: Definitions, object_type_code: int = 0) -> str:
     t = defs.table(view.table)
     cells = "".join(f'<cell name="{c}" width="{200 if i == 1 else 125}" />' for i, c in enumerate(view.columns))
-    return (f'<grid name="resultset" object="0" jump="{t.primary.schema}" select="1" icon="1" preview="1">'
+    return (f'<grid name="resultset" object="{object_type_code}" jump="{t.primary.schema}" select="1" icon="1" preview="1">'
             f'<row name="result" id="{t.schema}id">{cells}</row></grid>')
 
 
@@ -143,9 +149,10 @@ def _control(column: str, defs: Definitions, table: str, idx: str) -> str:
     col = next((c for c in t.columns if c.schema == column), None)
     if column in lookups:
         classid = "{270BD3DB-D9AF-4782-9025-509E298DEC0A}"
-        text = next(r.lookup.display for r in defs.lookups_of(table) if r.lookup.logical == column)
+        text, text_en = next(r.lookup.display for r in defs.lookups_of(table) if r.lookup.logical == column), None
     else:
         text = col.display if col else t.primary.display if column == t.primary.schema else column
+        text_en = col.display_en if col else None
         if col and col.type == "memo":
             classid = "{E0DECE4B-6FC8-4a8f-A065-082708572369}"
         elif col and col.type == "choice":
@@ -156,37 +163,47 @@ def _control(column: str, defs: Definitions, table: str, idx: str) -> str:
             classid = "{B0C6723A-8503-4fd7-BB28-C8A06AC933C2}"
         elif col and col.type in ("date", "datetime"):
             classid = "{5B773807-9FB2-42db-97C3-7A91EFF8ADFF}"
+        elif col and col.type == "int":
+            classid = "{C6D124CA-7EDA-4a60-AEA9-7FB8D318B68F}"
         else:
             classid = "{4273EDBD-AC1D-40d3-9FB2-095C621B552D}"
     rows = ' rowspan="4"' if col and col.type == "memo" else ""
-    return (f'<row><cell id="{_guid("cell", table, idx)}"{rows}><labels><label description="{_attr(text)}" languagecode="1031" /></labels>'
-            f'<control id="{column}" classid="{classid}" datafieldname="{column}" disabled="false" /></cell></row>')
+    disabled = "true" if col and col.type == "formula" else "false"
+    return (f'<row><cell id="{_guid("cell", table, idx)}"{rows}>{_labels(text, text_en)}'
+            f'<control id="{column}" classid="{classid}" datafieldname="{column}" disabled="{disabled}" /></cell></row>')
 
 
-def _subgrid_section(g: Subgrid, ti: int, gi: int, defs: Definitions) -> str:
+def _braced(guid: str) -> str:
+    return "{" + guid.strip("{}").upper() + "}"
+
+
+def _subgrid_section(g: Subgrid, ti: int, gi: int, defs: Definitions, view_ids: dict[tuple[str, str], str] | None) -> str:
     rel = defs.relationship_for(g.table, g.lookup)
-    plural = _attr(defs.table(g.table).plural)
-    grid = (f'<row><cell id="{_guid("grid", ti, gi, g.table)}" rowspan="8" showlabel="true"><labels><label description="{plural}" languagecode="1031" /></labels>'
+    target = defs.table(g.table)
+    view_id = _braced(view_ids[(g.table, g.view)]) if view_ids and (g.table, g.view) in view_ids else None
+    view_xml = f"<ViewId>{view_id or ZERO_GUID}</ViewId>" + (f"<ViewIds>{view_id}</ViewIds>" if view_id else "<ViewIds />")
+    grid = (f'<row><cell id="{_guid("grid", ti, gi, g.table)}" rowspan="8" showlabel="true">{_labels(target.plural, target.plural_en)}'
             f'<control id="grid_{g.table}_{gi}" classid="{{E7A81278-8635-4d9e-8D4D-59480B391C5B}}"><parameters>'
-            f'<ViewId>{ZERO_GUID}</ViewId><ViewIds /><TargetEntityType>{g.table}</TargetEntityType>'
+            f'{view_xml}<TargetEntityType>{g.table}</TargetEntityType>'
             f'<RelationshipName>{rel.schema}</RelationshipName><EnableViewPicker>false</EnableViewPicker><IsUserView>false</IsUserView>'
             f'<AutoExpand>Fixed</AutoExpand><RecordsPerPage>10</RecordsPerPage></parameters></control></cell></row>')
     return (f'<section name="grid_{ti}_{gi}" showlabel="true" showbar="false" columns="1" id="{_guid("gsec", ti, gi, g.table)}">'
-            f'<labels><label description="{plural}" languagecode="1031" /></labels><rows>{grid}</rows></section>')
+            f'{_labels(target.plural, target.plural_en)}<rows>{grid}</rows></section>')
 
 
-def form_xml(form: Form, defs: Definitions) -> str:
+def form_xml(form: Form, defs: Definitions, view_ids: dict[tuple[str, str], str] | None = None) -> str:
+    """FormXML. `view_ids` maps (sub-grid table, view name) to the saved query id; without it the zero GUID is emitted."""
     tabs = []
     for ti, tab in enumerate(form.tabs):
         sections = []
         for si, cols in enumerate(tab.sections):
             rows = "".join(_control(c, defs, form.table, f"{ti}-{si}-{ci}") for ci, c in enumerate(cols))
             sections.append(f'<section name="sec_{ti}_{si}" showlabel="false" showbar="false" columns="1" id="{_guid("sec", form.table, ti, si)}">'
-                            f'<labels><label description="{_attr(tab.name)}" languagecode="1031" /></labels><rows>{rows}</rows></section>')
+                            f'{_labels(tab.name)}<rows>{rows}</rows></section>')
         for gi, g in enumerate(tab.subgrids):
-            sections.append(_subgrid_section(g, ti, gi, defs))
+            sections.append(_subgrid_section(g, ti, gi, defs, view_ids))
         tabs.append(f'<tab name="{_attr(tab.name)}" verticallayout="true" id="{_guid("tab", form.table, ti)}" expanded="true" showlabel="true">'
-                    f'<labels><label description="{_attr(tab.name)}" languagecode="1031" /></labels><columns><column width="100%"><sections>{"".join(sections)}</sections></column></columns></tab>')
+                    f'{_labels(tab.name)}<columns><column width="100%"><sections>{"".join(sections)}</sections></column></columns></tab>')
     return f'<form><tabs>{"".join(tabs)}</tabs></form>'
 
 
@@ -216,7 +233,7 @@ def chart_xml(chart: Chart, defs: Definitions) -> tuple[str, str]:
             f'</entity></fetch></fetchcollection><categorycollection>'
             f'<category alias="groupby_col"><measurecollection><measure alias="count" /></measurecollection></category>{series_cat}'
             f'</categorycollection></datadefinition>')
-    kind = {"column": "Column", "pie": "Pie", "bar": "Bar"}[chart.kind]
+    kind = {"column": "StackedColumn" if chart.series else "Column", "pie": "Pie", "bar": "StackedBar" if chart.series else "Bar"}[chart.kind]
     legend = "True" if chart.series or chart.kind == "pie" else "False"
     pres = (f'<Chart Palette="BrightPastel"><Series><Series ChartType="{kind}" IsValueShownAsLabel="True" /></Series>'
             f'<ChartAreas><ChartArea><AxisY LabelAutoFitMinFontSize="8"><MajorGrid LineColor="246, 246, 246" /></AxisY><AxisX LabelAutoFitMinFontSize="8" /></ChartArea></ChartAreas>'

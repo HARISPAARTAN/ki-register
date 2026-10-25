@@ -58,6 +58,7 @@ display = "KI-System"
 plural = "KI-Systeme"
 primary = { schema = "nst_name", display = "Name", length = 200 }
 audit = true
+notes = true
 
   [[table.column]]
   schema = "nst_kennung"
@@ -176,6 +177,7 @@ display = "Anwendungsfall"
 plural = "Anwendungsfälle"
 primary = { schema = "nst_name", display = "Name", length = 200 }
 audit = true
+notes = true
 
   [[table.column]]
   schema = "nst_kennung"
@@ -236,6 +238,7 @@ display = "Risikobewertung"
 plural = "Risikobewertungen"
 primary = { schema = "nst_name", display = "Name", length = 200 }
 audit = true
+notes = true
 
   [[table.column]]
   schema = "nst_kennung"

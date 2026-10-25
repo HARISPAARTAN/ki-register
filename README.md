@@ -5,3 +5,9 @@ Ein Register für KI-Systeme nach EU-KI-Verordnung (EU AI Act), gebaut auf Micro
 Dieses Projekt ist keine Rechtsberatung.
 
 Status: in Arbeit.
+
+## Entscheidungen aus Review 1
+
+- Die Ansicht "Meine Anträge" entfällt in Meilenstein 1: `nst_antragsteller` ist ein Nachschlagefeld auf Mitarbeiter, nicht der angemeldete Benutzer. Die Canvas-App zur Anmeldung in Meilenstein 2 zeigt die eigenen Anträge der Benutzerin oder des Benutzers.
+- In Meilenstein 1 hat nur das KI-System ein ausdrückliches Hauptformular; alle übrigen Tabellen verwenden das erzeugte Standardformular.
+- Diese Punkte werden in ADR-002 übernommen.

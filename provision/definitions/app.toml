@@ -83,8 +83,9 @@ filter = [{ column = "nst_status", op = "in", values = ["Offen", "In Arbeit"] },
 table = "nst_kisystem"
 name = "KI-System Hauptformular"
 tabs = [
-  { name = "Allgemein", sections = [["nst_kennung", "nst_name", "nst_organisation", "nst_fachbereich", "nst_verantwortlicher", "nst_anbieter", "nst_systemtyp", "nst_rolle", "nst_status"], ["nst_zweck", "nst_beschreibung", "nst_dokumentation"]] },
-  { name = "Einstufung", sections = [["nst_risikoklasse", "nst_anhang3kategorie", "nst_transparenzpflicht", "nst_eudatenbank", "nst_datenarten"], ["nst_inbetriebnahme", "nst_letztepruefung", "nst_naechstepruefung", "nst_pruefungueberfaellig"]] },
+  { name = "Allgemein", sections = [["nst_kennung", "nst_name", "nst_organisation", "nst_fachbereich", "nst_verantwortlicher", "nst_anbieter", "nst_systemtyp", "nst_rolle", "nst_status"], ["nst_zweck", "nst_beschreibung"]] },
+  { name = "Einstufung", sections = [["nst_risikoklasse", "nst_anhang3kategorie", "nst_transparenzpflicht", "nst_eudatenbank"], ["nst_inbetriebnahme", "nst_letztepruefung", "nst_naechstepruefung", "nst_pruefungueberfaellig"]] },
+  { name = "Daten und Betroffene", sections = [["nst_datenarten", "nst_dokumentation"]] },
   { name = "Verlauf", subgrids = [{ table = "nst_risikobewertung", view = "Aktive Risikobewertungen", lookup = "nst_kisystem" }, { table = "nst_massnahme", view = "Offene Maßnahmen", lookup = "nst_kisystem" }] },
   { name = "Intern", sections = [["nst_internebewertung"]] }
 ]

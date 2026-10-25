@@ -2,11 +2,14 @@ business_units = ["Nordstern Projektmanagement", "Nordstern Energie", "Nordstern
 
 [[role]]
 name = "nst KI-Governance"
+# Spec 5: read on User, Team and Business Unit at organisation level.
+privileges = ["prvReadUser", "prvReadTeam", "prvReadBusinessUnit"]
 [role.tables]
 "*" = { create = "Global", read = "Global", write = "Global", delete = "Global", append = "Global", appendto = "Global", assign = "Global", share = "Global" }
 
 [[role]]
 name = "nst Fachbereich"
+# appendto on Organisation, KI-System and Mitarbeiter is needed to create an Anwendungsfall with its lookups.
 [role.tables]
 nst_kisystem = { read = "Local", appendto = "Local" }
 nst_massnahme = { read = "Local" }
@@ -24,7 +27,7 @@ nst_massnahme = { read = "Local" }
 nst_schulung = { read = "Local" }
 nst_schulungsteilnahme = { read = "Local" }
 nst_mitarbeiter = { read = "Local" }
-nst_organisation = { read = "Global" }
+nst_organisation = { read = "Local" }
 nst_anwendungsfall = { read = "Local" }
 
 [column_security]

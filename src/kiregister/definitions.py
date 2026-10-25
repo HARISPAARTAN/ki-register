@@ -48,6 +48,7 @@ class Table:
     primary: Primary
     columns: list[Column]
     audit: bool = False
+    notes: bool = False
     display_en: str | None = None
     plural_en: str | None = None
 
@@ -79,6 +80,7 @@ class Relationship:
 class Role:
     name: str
     tables: dict[str, dict[str, str]]
+    extra: dict[str, str] = field(default_factory=dict)  # further privileges by name (prvReadUser ...) -> depth
 
 
 @dataclass(frozen=True)
@@ -185,17 +187,26 @@ class Definitions:
     app: AppDef
 
     def table(self, schema: str) -> Table:
-        return next(t for t in self.tables if t.schema == schema)
+        try:
+            return next(t for t in self.tables if t.schema == schema)
+        except StopIteration:
+            raise KeyError(f"Tabelle {schema!r} nicht definiert") from None
 
     def choice(self, schema: str) -> Choice:
-        return next(c for c in self.choices if c.schema == schema)
+        try:
+            return next(c for c in self.choices if c.schema == schema)
+        except StopIteration:
+            raise KeyError(f"Auswahlfeld {schema!r} nicht definiert") from None
 
     def lookups_of(self, table: str) -> list[Relationship]:
         return [r for r in self.relationships if r.referencing == table]
 
     def relationship_for(self, referencing: str, lookup: str) -> Relationship:
         """Find the relationship by referencing table and lookup name (logical or schema casing)."""
-        return next(r for r in self.relationships if r.referencing == referencing and r.lookup.logical == lookup.lower())
+        try:
+            return next(r for r in self.relationships if r.referencing == referencing and r.lookup.logical == lookup.lower())
+        except StopIteration:
+            raise KeyError(f"Beziehung fuer Nachschlagefeld {lookup!r} an {referencing!r} nicht definiert") from None
 
 
 def _read(path: Path) -> dict:
@@ -210,6 +221,16 @@ def _column(raw: dict) -> Column:
     return Column(**{k: v for k, v in raw.items() if k in Column.__dataclass_fields__})
 
 
+def _extra_privileges(role: dict) -> dict[str, str]:
+    """Optional `privileges`: a list of privilege names (depth Global) or a table of name -> depth."""
+    raw = role.get("privileges", [])
+    extra = dict.fromkeys(raw, "Global") if isinstance(raw, list) else dict(raw)
+    for name, depth in extra.items():
+        if depth not in DEPTHS:
+            raise ValueError(f"Rolle {role['name']}: {name}={depth} ungueltig")
+    return extra
+
+
 def load_definitions(directory: Path) -> Definitions:
     d = Path(directory)
     choices = [Choice(**c) for c in _read(d / "choices.toml")["choice"]]
@@ -218,7 +239,7 @@ def load_definitions(directory: Path) -> Definitions:
         prim = raw["primary"]
         tables.append(Table(schema=raw["schema"], display=raw["display"], plural=raw["plural"],
                             primary=Primary(prim["schema"], prim["display"], int(prim.get("length", 200))),
-                            columns=[_column(c) for c in raw.get("column", [])], audit=bool(raw.get("audit", False)),
+                            columns=[_column(c) for c in raw.get("column", [])], audit=bool(raw.get("audit", False)), notes=bool(raw.get("notes", False)),
                             display_en=raw.get("display_en"), plural_en=raw.get("plural_en")))
     rels = []
     for raw in _read(d / "relationships.toml")["relationship"]:
@@ -229,12 +250,15 @@ def load_definitions(directory: Path) -> Definitions:
                                  Lookup(lk["schema"], lk["display"], bool(lk.get("required", False))), raw.get("delete", "RemoveLink")))
     sec_raw = _read(d / "security.toml")
     roles = []
+    known_tables = {t.schema for t in tables}
     for r in sec_raw["role"]:
         for table, privs in r["tables"].items():
+            if table != "*" and table not in known_tables:
+                raise ValueError(f"Rolle {r['name']}: Tabelle {table!r} ist weder '*' noch in tables.toml definiert")
             for name, depth in privs.items():
                 if name not in PRIVILEGES or depth not in DEPTHS:
                     raise ValueError(f"Rolle {r['name']}: {table}.{name}={depth} ungueltig")
-        roles.append(Role(r["name"], r["tables"]))
+        roles.append(Role(r["name"], r["tables"], _extra_privileges(r)))
     cs = sec_raw["column_security"]
     security = Security(sec_raw["business_units"], roles,
                         ColumnSecurity(cs["profile"], [(c["table"], c["column"]) for c in cs["columns"]], cs["roles_with_access"]))

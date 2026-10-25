@@ -71,7 +71,7 @@ def test_relationship_payload_cascade():
 
 def test_fetch_and_layout_xml_for_a_view():
     v = next(v for v in D.app.views if v.name == "Prüfung überfällig")
-    fetch = builders.fetch_xml(v, D)
+    fetch = builders.fetch_xml(v, D, 58000)
     assert '<entity name="nst_kisystem">' in fetch
     assert '<attribute name="nst_naechstepruefung"' in fetch
     assert '<condition attribute="nst_status" operator="eq" value="580000003"' in fetch  # In Betrieb = index 3
@@ -84,7 +84,7 @@ def test_fetch_and_layout_xml_for_a_view():
 def test_form_xml_has_tabs_sections_and_subgrids():
     f = next(f for f in D.app.forms if f.table == "nst_kisystem")
     xml = builders.form_xml(f, D)
-    assert xml.count("<tab ") == 4 and 'name="Verlauf"' in xml
+    assert xml.count("<tab ") == 5 and 'name="Verlauf"' in xml
     assert 'datafieldname="nst_internebewertung"' in xml
     assert "<TargetEntityType>nst_risikobewertung</TargetEntityType>" in xml
     assert "<RelationshipName>nst_kisystem_risikobewertung</RelationshipName>" in xml
