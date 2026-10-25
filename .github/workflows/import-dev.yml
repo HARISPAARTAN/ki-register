@@ -1,0 +1,42 @@
+name: Lösung nach Dev importieren
+
+# Packt solution/src als unmanaged Lösung und importiert sie nach Nordstern Dev. Gebraucht, wenn die Quelle von Hand ergänzt wurde,
+# etwa um die App-Komponenten der Tabellen (ADR-002); danach exportiert export-solution.yml den Stand erneut.
+# pac läuft nur auf dem Runner.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nordstern-dev
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: microsoft/powerplatform-actions/actions-install@v1
+      - run: mkdir -p dist
+
+      - name: Unmanaged packen
+        uses: microsoft/powerplatform-actions/pack-solution@v1
+        with:
+          solution-folder: solution/src
+          solution-file: dist/NordsternKIRegister.zip
+          solution-type: Unmanaged
+
+      - name: Nach Dev importieren
+        uses: microsoft/powerplatform-actions/import-solution@v1
+        with:
+          environment-url: ${{ secrets.DATAVERSE_URL_DEV }}
+          app-id: ${{ secrets.CLIENT_ID }}
+          client-secret: ${{ secrets.CLIENT_SECRET }}
+          tenant-id: ${{ secrets.TENANT_ID }}
+          solution-file: dist/NordsternKIRegister.zip
+          force-overwrite: true
+          publish-changes: true

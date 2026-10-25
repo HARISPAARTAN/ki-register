@@ -1,0 +1,78 @@
+name: Lösung exportieren
+
+# Exportiert die Lösung NordsternKIRegister aus Nordstern Dev (unmanaged und managed), entpackt sie nach solution/src und
+# öffnet einen Pull Request. Die Eigentümerin oder der Eigentümer prüft den Diff und führt den Pull Request zusammen.
+# Das Power Platform CLI (pac) läuft nur hier auf dem Runner, nie auf dem Rechner der Eigentümerin oder des Eigentümers.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: nordstern-dev
+  cancel-in-progress: false
+
+env:
+  SOLUTION: NordsternKIRegister
+
+jobs:
+  export:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: microsoft/powerplatform-actions/actions-install@v1
+      - run: mkdir -p dist
+
+      - name: Unmanaged exportieren
+        uses: microsoft/powerplatform-actions/export-solution@v1
+        with:
+          environment-url: ${{ secrets.DATAVERSE_URL_DEV }}
+          app-id: ${{ secrets.CLIENT_ID }}
+          client-secret: ${{ secrets.CLIENT_SECRET }}
+          tenant-id: ${{ secrets.TENANT_ID }}
+          solution-name: ${{ env.SOLUTION }}
+          solution-output-file: dist/NordsternKIRegister.zip
+          managed: false
+
+      - name: Managed exportieren
+        uses: microsoft/powerplatform-actions/export-solution@v1
+        with:
+          environment-url: ${{ secrets.DATAVERSE_URL_DEV }}
+          app-id: ${{ secrets.CLIENT_ID }}
+          client-secret: ${{ secrets.CLIENT_SECRET }}
+          tenant-id: ${{ secrets.TENANT_ID }}
+          solution-name: ${{ env.SOLUTION }}
+          solution-output-file: dist/NordsternKIRegister_managed.zip
+          managed: true
+
+      # solution-type Both braucht beide Archive im selben Ordner
+      - name: Nach solution/src entpacken
+        uses: microsoft/powerplatform-actions/unpack-solution@v1
+        with:
+          solution-file: dist/NordsternKIRegister.zip
+          solution-folder: solution/src
+          solution-type: Both
+          overwrite-files: true
+
+      # add-paths: nur solution/src kommt in den Commit, nie dist/ (Archive) oder anderes
+      - name: Pull Request öffnen
+        uses: peter-evans/create-pull-request@v8
+        with:
+          add-paths: solution/src
+          branch: export/solution-${{ github.run_number }}
+          commit-message: "chore(solution): export from Nordstern Dev"
+          author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+          committer: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+          title: Lösungsexport ${{ github.run_number }}
+          body: |
+            Export der Lösung NordsternKIRegister aus Nordstern Dev.
+
+            - Lauf: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            - Gestartet von: ${{ github.actor }}
+            - Stand von main: ${{ github.sha }}
+
+            Bitte den Diff ansehen: Er darf nur Dateien unter `solution/src` enthalten, keine Archive und keine Geheimnisse.

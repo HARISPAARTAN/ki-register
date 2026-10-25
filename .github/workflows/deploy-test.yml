@@ -1,0 +1,57 @@
+name: Deploy nach Test
+
+# Packt solution/src als managed Lösung, importiert sie nach Nordstern Test und prüft das Ergebnis mit kiregister verify.
+# Läuft bei einem Tag v* und von Hand (Run workflow), damit der Weg auch ohne Tag erprobt werden kann.
+# Test erhält nur die Lösung: Unternehmenseinheiten, Besitzerteams und Seed sind keine Lösungskomponenten (ADR-003),
+# deshalb prüft verify mit KIREGISTER_VERIFY_NO_SEED=1 nur Lösungskomponenten.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nordstern-test
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - uses: microsoft/powerplatform-actions/actions-install@v1
+      - run: mkdir -p dist
+
+      - name: Managed packen
+        uses: microsoft/powerplatform-actions/pack-solution@v1
+        with:
+          solution-folder: solution/src
+          solution-file: dist/NordsternKIRegister_managed.zip
+          solution-type: Managed
+
+      - name: Nach Test importieren
+        uses: microsoft/powerplatform-actions/import-solution@v1
+        with:
+          environment-url: ${{ secrets.DATAVERSE_URL_TEST }}
+          app-id: ${{ secrets.CLIENT_ID }}
+          client-secret: ${{ secrets.CLIENT_SECRET }}
+          tenant-id: ${{ secrets.TENANT_ID }}
+          solution-file: dist/NordsternKIRegister_managed.zip
+          force-overwrite: true
+          publish-changes: true
+          skip-dependency-check: false
+
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync --locked
+      - name: Prüfen (nur Lösungskomponenten)
+        env:
+          TENANT_ID: ${{ secrets.TENANT_ID }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+          DATAVERSE_URL_TEST: ${{ secrets.DATAVERSE_URL_TEST }}
+          KIREGISTER_VERIFY_NO_SEED: "1"
+        run: uv run kiregister verify --env test

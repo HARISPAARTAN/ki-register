@@ -4,18 +4,39 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  test:
+  lint-and-unit:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
       - run: uv sync --locked
       - run: uv run ruff check .
-      # Integrationstests (Marker dataverse) benoetigen eine Umgebung und laufen hier nicht.
       - run: uv run pytest tests/unit -q
+
+  # Integrationstests (Marker dataverse) laufen gegen Nordstern Dev und nur von Hand: Actions, CI, Run workflow.
+  integration:
+    if: github.event_name == 'workflow_dispatch'
+    needs: lint-and-unit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    concurrency:
+      group: nordstern-dev
+      cancel-in-progress: false
+    env:
+      TENANT_ID: ${{ secrets.TENANT_ID }}
+      CLIENT_ID: ${{ secrets.CLIENT_ID }}
+      CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+      DATAVERSE_URL_DEV: ${{ secrets.DATAVERSE_URL_DEV }}
+      DATAVERSE_URL_TEST: ${{ secrets.DATAVERSE_URL_TEST }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync --locked
+      - run: uv run pytest tests/integration -m dataverse -q
