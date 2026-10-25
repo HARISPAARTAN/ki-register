@@ -2,7 +2,10 @@
 
 The owning team of a row is the owner team of its subsidiary (security.find_owner_teams), not the default team: see ADR-002.
 All dates in the CSVs are anchored at SEED_ANCHOR; `load_seed` shifts them by whole weeks to the reference date (`--stichtag`),
-so that "überfällig" stays true over time (spec 10)."""
+so that "überfällig" stays true over time (spec 10). The name of an assessment is a base text in the CSV; `payload` appends the month
+of the shifted `nst_datum`, so that the name follows the date (DATED_NAME_COLUMN).
+The `key` column of every CSV is an opaque identifier: it feeds uuid5 (`record_id`) and is never renamed, because a renamed key is a new
+record and the code never deletes."""
 
 from __future__ import annotations
 
@@ -23,7 +26,8 @@ log = logging.getLogger(__name__)
 DATE_FORMAT = re.compile(r"\d{4}-\d{2}-\d{2}")
 NAMESPACE = uuid.UUID("6f1f0c1e-3a5b-4d2e-9f8a-2b7c1d0e9a11")
 SEED_ANCHOR = date(2026, 10, 25)  # reference date of the dates in the CSVs
-ORDER = ["nst_organisation", "nst_mitarbeiter", "nst_kisystem", "nst_anwendungsfall", "nst_risikobewertung", "nst_massnahme", "nst_schulung", "nst_schulungsteilnahme"]
+DATED_NAME_COLUMN = {"nst_risikobewertung": "nst_datum"}  # table -> date column whose shifted month ends the name ("<CSV name> YYYY-MM")
+ORDER =["nst_organisation", "nst_mitarbeiter", "nst_kisystem", "nst_anwendungsfall", "nst_risikobewertung", "nst_massnahme", "nst_schulung", "nst_schulungsteilnahme"]
 FILES = {"nst_organisation": "organisationen.csv", "nst_mitarbeiter": "mitarbeiter.csv", "nst_kisystem": "kisysteme.csv", "nst_anwendungsfall": "anwendungsfaelle.csv",
          "nst_risikobewertung": "risikobewertungen.csv", "nst_massnahme": "massnahmen.csv", "nst_schulung": "schulungen.csv", "nst_schulungsteilnahme": "teilnahmen.csv"}
 
@@ -104,6 +108,9 @@ def payload(table: str, row: dict, defs: Definitions, option_prefix: int, team_i
             p[col.schema] = _convert(defs, col, v, option_prefix, shift_days)
         except ValueError as exc:
             raise SeedError(f"{table}.{col.schema} (Zeile {row.get('key', '?')}): {exc}") from exc
+    dated = DATED_NAME_COLUMN.get(table)
+    if dated and p.get(t.primary.schema) and p.get(dated):
+        p[t.primary.schema] = f"{p[t.primary.schema]} {p[dated][:7]}"
     for rel in defs.lookups_of(table):
         v = row.get(rel.lookup.schema, "")
         if v:

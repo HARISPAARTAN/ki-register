@@ -46,8 +46,8 @@ def test_hochrisiko_view_returns_the_five_systems_of_tier_hoch(client, settings)
     assert len(rows) == 5 and {r["nst_name"] for r in rows} == high
 
 
-def test_overdue_view_and_formula_column_agree_with_the_overdue_set_computed_from_the_data(client, defs):
-    in_operation = 580000000 + defs.choice("nst_status_kisystem").values.index("In Betrieb")
+def test_overdue_view_and_formula_column_agree_with_the_overdue_set_computed_from_the_data(client, settings, defs):
+    in_operation = settings.option_prefix * 10000 + defs.choice("nst_status_kisystem").values.index("In Betrieb")
     today = datetime.now(UTC).date()
     systems = client.get_all(seed.entity_set(client, "nst_kisystem"), {"$select": "nst_name,nst_status,nst_naechstepruefung"})
     reviewed = [(s["nst_name"], s["nst_naechstepruefung"]) for s in systems if s["nst_status"] == in_operation and s["nst_naechstepruefung"]]
@@ -57,7 +57,7 @@ def test_overdue_view_and_formula_column_agree_with_the_overdue_set_computed_fro
     view = {r["nst_name"] for r in _view_rows(client, "nst_kisystem", "Prüfung überfällig")}
     formula = {s["nst_name"] for s in client.get_all(seed.entity_set(client, "nst_kisystem"), {"$select": "nst_name", "$filter": "nst_pruefungueberfaellig eq true"})}
     assert formula == loose and strict <= view <= loose
-    assert view and len(view) > 0
+    assert view  # spec 11: Prüfung überfällig > 0
 
 
 def test_every_seeded_row_exists_under_its_deterministic_id_and_belongs_to_the_owner_team_of_its_subsidiary(client, settings):

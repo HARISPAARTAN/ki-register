@@ -157,9 +157,6 @@ class DataverseClient:
     def patch(self, path: str, json: dict, solution: bool = True, component: str | None = None) -> None:
         self._request("PATCH", path, json=json, solution=solution, component=component)
 
-    def delete(self, path: str) -> None:
-        self._request("DELETE", path)
-
     def action(self, name: str, body: dict | None = None, solution: bool = True) -> dict:
         resp = self._request("POST", name, json=body or {}, solution=solution, component=name, timeout=ACTION_TIMEOUT)
         return resp.json() if resp.content else {}

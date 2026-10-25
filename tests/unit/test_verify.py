@@ -70,7 +70,7 @@ def test_everything_in_place_gives_no_problems():
 
 
 @respx.mock
-def test_missing_table_is_reported_once_and_not_counted_as_a_seed_problem_crash():
+def test_missing_table_is_reported_and_its_seed_check_says_the_table_is_missing_instead_of_failing():
     mock_environment(skip_table="nst_schulung")
     assert run(expect_seed=True) == ["Tabelle nst_schulung", "Seed nst_schulung: Tabelle fehlt"]
 
