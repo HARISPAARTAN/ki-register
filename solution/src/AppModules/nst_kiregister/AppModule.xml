@@ -10,6 +10,14 @@
   <ClientType>4</ClientType>
   <NavigationType>0</NavigationType>
   <AppModuleComponents>
+    <AppModuleComponent type="1" schemaName="nst_anwendungsfall" />
+    <AppModuleComponent type="1" schemaName="nst_kisystem" />
+    <AppModuleComponent type="1" schemaName="nst_massnahme" />
+    <AppModuleComponent type="1" schemaName="nst_mitarbeiter" />
+    <AppModuleComponent type="1" schemaName="nst_organisation" />
+    <AppModuleComponent type="1" schemaName="nst_risikobewertung" />
+    <AppModuleComponent type="1" schemaName="nst_schulung" />
+    <AppModuleComponent type="1" schemaName="nst_schulungsteilnahme" />
     <AppModuleComponent type="26" id="{7398580b-91d0-f111-a05d-002248db5f3f}" />
     <AppModuleComponent type="26" id="{7798580b-91d0-f111-a05d-002248db5f3f}" />
     <AppModuleComponent type="26" id="{7a98580b-91d0-f111-a05d-002248db5f3f}" />
