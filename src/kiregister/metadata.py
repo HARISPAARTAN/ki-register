@@ -16,14 +16,16 @@ def ensure_publisher_and_solution(client: DataverseClient, settings: Settings) -
     pub = client.find_one("publishers", f"uniquename eq '{settings.publisher_unique}'", "publisherid")
     if not pub:
         pub_id = client.post("publishers", {"uniquename": settings.publisher_unique, "friendlyname": settings.publisher_display,
-                                            "customizationprefix": settings.prefix, "customizationoptionvalueprefix": settings.option_prefix}, solution=False)
+                                            "customizationprefix": settings.prefix, "customizationoptionvalueprefix": settings.option_prefix},
+                             solution=False, component=settings.publisher_unique)
         log.info("Publisher %s angelegt", settings.publisher_unique)
     else:
         pub_id = pub["publisherid"]
     sol = client.find_one("solutions", f"uniquename eq '{settings.solution}'", "solutionid,version")
     if not sol:
         client.post("solutions", {"uniquename": settings.solution, "friendlyname": settings.solution_display, "version": settings.solution_version,
-                                  "publisherid@odata.bind": f"/publishers({pub_id})"}, solution=False)
+                                  "publisherid@odata.bind": f"/publishers({pub_id})"},
+                    solution=False, component=settings.solution)
         log.info("Loesung %s angelegt", settings.solution)
 
 
@@ -34,7 +36,7 @@ def ensure_choices(client: DataverseClient, defs: Definitions, option_prefix: in
         if c.schema in existing:
             ids[c.schema] = existing[c.schema]
             continue
-        ids[c.schema] = client.post("GlobalOptionSetDefinitions", builders.choice_payload(c, option_prefix))
+        ids[c.schema] = client.post("GlobalOptionSetDefinitions", builders.choice_payload(c, option_prefix), component=c.schema)
         log.info("Auswahl %s angelegt", c.schema)
     return ids
 
@@ -44,7 +46,7 @@ def ensure_tables(client: DataverseClient, defs: Definitions) -> None:
     for t in defs.tables:
         if t.schema in existing:
             continue
-        client.post("EntityDefinitions", builders.table_payload(t))
+        client.post("EntityDefinitions", builders.table_payload(t), component=t.schema)
         log.info("Tabelle %s angelegt", t.schema)
 
 
@@ -60,9 +62,10 @@ def ensure_columns(client: DataverseClient, defs: Definitions, choice_ids: dict[
             if col.schema in present:
                 continue
             try:
-                client.post(f"EntityDefinitions(LogicalName='{t.schema}')/Attributes", builders.column_payload(t, col, choice_ids))
+                client.post(f"EntityDefinitions(LogicalName='{t.schema}')/Attributes", builders.column_payload(t, col, choice_ids),
+                            component=f"{t.schema}.{col.schema}")
             except DataverseError as exc:
-                if col.type == "formula":
+                if col.type == "formula" and exc.status == 400:
                     log.warning("Formelspalte %s.%s abgelehnt (%s); Ansichtsfilter ist der Ersatz (ADR-002)", t.schema, col.schema, exc.message)
                     continue
                 raise
@@ -74,15 +77,17 @@ def ensure_relationships(client: DataverseClient, defs: Definitions) -> None:
     for r in defs.relationships:
         if r.schema in existing:
             continue
-        client.post("RelationshipDefinitions", builders.relationship_payload(r))
+        client.post("RelationshipDefinitions", builders.relationship_payload(r), component=r.schema)
         log.info("Beziehung %s angelegt", r.schema)
 
 
 def publish_all(client: DataverseClient) -> None:
-    client.action("PublishAllXml")
+    client.action("PublishAllXml", solution=False)
 
 
 def apply_metadata(client: DataverseClient, settings: Settings, defs: Definitions) -> dict[str, int]:
+    if client.solution != settings.solution:
+        raise ValueError(f"Client-Loesung {client.solution!r} entspricht nicht der Konfiguration {settings.solution!r}")
     ensure_publisher_and_solution(client, settings)
     choice_ids = ensure_choices(client, defs, settings.option_prefix)
     ensure_tables(client, defs)

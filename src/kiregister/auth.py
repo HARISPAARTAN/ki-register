@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import json
+import os
+import re
+import shutil
 import subprocess
 import time
 
@@ -31,13 +34,18 @@ class AzCliTokens:
 
     def __init__(self, url: str):
         self._resource = url.rstrip("/")
+        # the resource is passed to a shell on Windows (az is az.cmd there), so accept only a plain https origin
+        if not re.fullmatch(r"https://[A-Za-z0-9.\-]+(:\d+)?", self._resource):
+            raise ValueError(f"Ungueltige Umgebungs-URL fuer az: {url!r}")
         self._cached: tuple[float, str] | None = None
 
     def token(self) -> str:
         if self._cached and self._cached[0] > time.time() + 60:
             return self._cached[1]
-        out = subprocess.run(["az", "account", "get-access-token", "--resource", self._resource, "-o", "json"],
-                             capture_output=True, text=True, check=True, shell=True).stdout
+        windows = os.name == "nt"
+        az = "az" if windows else (shutil.which("az") or "az")
+        out = subprocess.run([az, "account", "get-access-token", "--resource", self._resource, "-o", "json"],
+                             capture_output=True, text=True, check=True, shell=windows).stdout
         data = json.loads(out)
         self._cached = (time.time() + 3000, data["accessToken"])
         return data["accessToken"]
