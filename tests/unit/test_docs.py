@@ -1,5 +1,6 @@
 """The documentation of milestone 1 is complete and consistent: the two READMEs, the decision records, the changelog and the links."""
 
+import datetime
 import re
 import tomllib
 from pathlib import Path
@@ -11,6 +12,9 @@ README_DE = (ROOT / "README.md").read_text(encoding="utf-8")
 README_EN = (ROOT / "README.en.md").read_text(encoding="utf-8")
 MARKDOWN = [ROOT / "README.md", ROOT / "README.en.md", ROOT / "docs" / "erd.md", ROOT / "docs" / "nachbau-anleitung.md",
             ROOT / "docs" / "CHANGELOG.md", *sorted((ROOT / "docs" / "decisions").glob("ADR-*.md"))]
+ISO_DATE = r"\d{4}-\d{2}-\d{2}"
+ADR_STATUSES = {"vorgeschlagen", "angenommen", "abgelöst", "verworfen"}
+ADR_NAMES = {"ADR-001-dataverse-statt-sharepoint.md", "ADR-002-code-first-provisionierung.md", "ADR-003-alm-ohne-pipelines.md"}
 
 
 def test_each_readme_links_to_the_other_at_the_top():
@@ -78,22 +82,30 @@ def test_the_screenshot_list_is_the_same_in_both_readmes_and_asks_for_the_shots_
 @pytest.mark.parametrize("adr", sorted((ROOT / "docs" / "decisions").glob("ADR-*.md")), ids=lambda p: p.name[:7])
 def test_each_decision_record_has_date_status_context_decision_and_consequences(adr):
     text = adr.read_text(encoding="utf-8")
-    assert "- Datum: 2026-10-25" in text and "- Status: angenommen" in text
+    day = re.search(rf"^- Datum: ({ISO_DATE})$", text, re.M)
+    assert day, "Datum fehlt oder ist kein ISO-Datum"
+    datetime.date.fromisoformat(day.group(1))  # a real calendar date
+    status = re.search(r"^- Status: (\S+)", text, re.M)
+    assert status and status.group(1) in ADR_STATUSES, status and status.group(1)
     for heading in ("## Kontext", "## Entscheidung", "## Folgen"):
         assert heading in text, heading
 
 
-def test_the_three_decision_records_exist_under_their_names():
-    names = sorted(p.name for p in (ROOT / "docs" / "decisions").glob("ADR-*.md"))
-    assert names == ["ADR-001-dataverse-statt-sharepoint.md", "ADR-002-code-first-provisionierung.md", "ADR-003-alm-ohne-pipelines.md"]
+def test_the_decision_records_of_milestone_1_exist_under_their_names():
+    names = {p.name for p in (ROOT / "docs" / "decisions").glob("ADR-*.md")}
+    assert ADR_NAMES <= names  # later milestones add records
 
 
-def test_the_changelog_has_the_v0_1_0_section_and_the_version_stays_0_1_0():
+def test_the_changelog_keeps_the_v0_1_0_section_and_has_a_dated_section_for_the_repository_version():
     changelog = (ROOT / "docs" / "CHANGELOG.md").read_text(encoding="utf-8")
-    assert "## v0.1.0 (2026-10-25) Meilenstein 1 Registerkern" in changelog
+    headings = re.findall(rf"^## v(\d+\.\d+\.\d+) \(({ISO_DATE})\) .+$", changelog, re.M)  # the date of a release is set when it is tagged
+    for _, day in headings:
+        datetime.date.fromisoformat(day)
+    version = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
+    assert version in {v for v, _ in headings}, f"CHANGELOG hat keinen Abschnitt v{version}"
+    assert re.search(rf"^## v0\.1\.0 \({ISO_DATE}\) Meilenstein 1 Registerkern$", changelog, re.M)
     for n in range(1, 9):
         assert re.search(rf"^{n}\. \*\*", changelog, re.M), n
-    assert tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"] == "0.1.0"
 
 
 def test_the_rebuild_guide_follows_the_manual_order_and_leaves_room_for_milestones_2_to_4():
