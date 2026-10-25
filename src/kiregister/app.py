@@ -12,8 +12,8 @@ from .definitions import Definitions
 log = logging.getLogger(__name__)
 FORM_MAIN, FORM_DASHBOARD = 2, 0
 APP_CLIENT_TYPE_UCI = 4
-# AddAppComponents accepts {"@odata.type": ".entity", "entityid": <MetadataId>} but stores a component that points at the table "entity"
-# itself instead of the table (ADR-002). Tables therefore reach the app through the site map only.
+# AddAppComponents accepts {"@odata.type": ".entity", "entityid": <MetadataId>} but ignores the id (any GUID, also the zero GUID, gives a
+# component that points at the table "entity" itself; ADR-002). Tables therefore reach the app through the site map only.
 ADD_ENTITY_COMPONENTS = False
 DEFAULT_APP_ICON = "953b9fac-1e5e-e611-80d6-00155ded156f"  # webresource of the stock app icon (required on create)
 
@@ -54,7 +54,8 @@ def ensure_views(client: DataverseClient, defs: Definitions, option_prefix: int)
             codes[v.table] = object_type_code(client, v.table)
         existing = client.find_one("savedqueries", f"name eq '{_quote(v.name)}' and returnedtypecode eq '{v.table}'", "savedqueryid")
         body = {"name": v.name, "returnedtypecode": v.table, "fetchxml": builders.fetch_xml(v, defs, option_prefix),
-                "layoutxml": builders.layout_xml(v, defs, codes[v.table]), "querytype": 0, "description": v.name}
+                "layoutxml": builders.layout_xml(v, defs, codes[v.table]), "querytype": 0, "description": v.name,
+                "isdefault": v.default}
         component = f"Ansicht {v.table} / {v.name}"
         if existing:
             client.patch(f"savedqueries({existing['savedqueryid']})", body, component=component)
@@ -62,7 +63,21 @@ def ensure_views(client: DataverseClient, defs: Definitions, option_prefix: int)
         else:
             ids[(v.table, v.name)] = client.post_id("savedqueries", body, component=component)
             log.info("Ansicht %s / %s angelegt", v.table, v.name)
+    demote_stock_default_views(client, views, ids)
     return ids
+
+
+def demote_stock_default_views(client: DataverseClient, views: list, ids: dict[tuple[str, str], str]) -> None:
+    """Our default view must be the only default of its table: the stock "Active ..." view is switched to non-default."""
+    for v in views:
+        if not v.default:
+            continue
+        mine = ids[(v.table, v.name)]
+        rows = client.get_all("savedqueries", {"$select": "savedqueryid,name", "$filter": f"returnedtypecode eq '{v.table}' and querytype eq 0 and isdefault eq true"})
+        for r in rows:
+            if r["savedqueryid"] != mine:
+                client.patch(f"savedqueries({r['savedqueryid']})", {"isdefault": False}, component=f"Ansicht {v.table} / {r['name']}")
+                log.info("Standardansicht %s / %s abgewaehlt", v.table, r["name"])
 
 
 def ensure_forms(client: DataverseClient, defs: Definitions, view_ids: dict[tuple[str, str], str]) -> dict[str, str]:
@@ -76,10 +91,10 @@ def ensure_forms(client: DataverseClient, defs: Definitions, view_ids: dict[tupl
         xml = builders.form_xml(f, defs, view_ids)
         component = f"Formular {f.name}"
         if existing:
-            client.patch(f"systemforms({existing['formid']})", {"formxml": xml}, component=component)
+            client.patch(f"systemforms({existing['formid']})", {"formxml": xml, "isdefault": True}, component=component)
             ids[f.table] = existing["formid"]
         else:
-            body = {"name": f.name, "objecttypecode": f.table, "type": FORM_MAIN, "formxml": xml, "description": f.name}
+            body = {"name": f.name, "objecttypecode": f.table, "type": FORM_MAIN, "formxml": xml, "description": f.name, "isdefault": True}
             ids[f.table] = client.post_id("systemforms", body, component=component)
             log.info("Formular %s angelegt", f.name)
     return ids
@@ -144,12 +159,13 @@ def ensure_dashboard(client: DataverseClient, defs: Definitions, view_ids: dict,
 
 
 def app_components(defs: Definitions, form_ids: dict, view_ids: dict, chart_ids: dict, dashboard_id: str,
-                   entity_ids: dict[str, str]) -> list[dict]:
-    """AddAppComponents list: every table of every area, every form and view, the charts and the dashboard."""
+                   entity_ids: dict[str, str] | None = None) -> list[dict]:
+    """AddAppComponents list: forms, views, charts and the dashboard, plus every table of every area when `entity_ids` is given."""
     comps = []
-    for area in defs.app.areas:
-        for t in area.tables:
-            comps.append({"@odata.type": "Microsoft.Dynamics.CRM.entity", "entityid": entity_ids[t]})
+    if entity_ids is not None:
+        for area in defs.app.areas:
+            for t in area.tables:
+                comps.append({"@odata.type": "Microsoft.Dynamics.CRM.entity", "entityid": entity_ids[t]})
     comps += [{"@odata.type": "Microsoft.Dynamics.CRM.systemform", "formid": fid} for fid in form_ids.values()]
     comps += [{"@odata.type": "Microsoft.Dynamics.CRM.savedquery", "savedqueryid": vid} for vid in view_ids.values()]
     comps += [{"@odata.type": "Microsoft.Dynamics.CRM.savedqueryvisualization", "savedqueryvisualizationid": cid} for cid in chart_ids.values()]
@@ -175,10 +191,8 @@ def ensure_app_module(client: DataverseClient, settings: Settings, defs: Definit
     else:
         sm_id = client.post_id("sitemaps", {"sitemapname": f"{a.display} Sitemap", "sitemapnameunique": f"{unique}_sitemap", "sitemapxml": sitemap_xml},
                                component="Sitemap")
-    entity_ids = entity_metadata_ids(client, defs, [t for area in a.areas for t in area.tables])
+    entity_ids = entity_metadata_ids(client, defs, [t for area in a.areas for t in area.tables]) if ADD_ENTITY_COMPONENTS else None
     comps = app_components(defs, form_ids, view_ids, chart_ids, dashboard_id, entity_ids)
-    if not ADD_ENTITY_COMPONENTS:
-        comps = [c for c in comps if not c["@odata.type"].endswith(".entity")]
     client.action("AddAppComponents", {"AppId": app_id, "Components": [{"@odata.type": "Microsoft.Dynamics.CRM.sitemap", "sitemapid": sm_id}, *comps]})
     client.action("PublishXml", {"ParameterXml": f"<importexportxml><appmodules><appmodule>{app_id}</appmodule></appmodules></importexportxml>"}, solution=False)
     problems = validate_app(client, app_id)

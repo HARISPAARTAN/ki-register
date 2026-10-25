@@ -185,7 +185,7 @@ def _subgrid_section(g: Subgrid, ti: int, gi: int, defs: Definitions, view_ids: 
     view_id = _braced(view_ids[(g.table, g.view)]) if view_ids is not None else None
     view_xml = f"<ViewId>{view_id or ZERO_GUID}</ViewId>" + (f"<ViewIds>{view_id}</ViewIds>" if view_id else "<ViewIds />")
     grid = (f'<row><cell id="{_guid("grid", ti, gi, g.table)}" rowspan="8" showlabel="true">{_labels(target.plural, target.plural_en)}'
-            f'<control id="grid_{g.table}_{gi}" classid="{{E7A81278-8635-4d9e-8D4D-59480B391C5B}}"><parameters>'
+            f'<control id="grid_{g.table}_{ti}_{gi}" classid="{{E7A81278-8635-4d9e-8D4D-59480B391C5B}}"><parameters>'
             f'{view_xml}<TargetEntityType>{g.table}</TargetEntityType>'
             f'<RelationshipName>{rel.schema}</RelationshipName><EnableViewPicker>false</EnableViewPicker><IsUserView>false</IsUserView>'
             f'<AutoExpand>Fixed</AutoExpand><RecordsPerPage>10</RecordsPerPage></parameters></control></cell></row>')

@@ -75,6 +75,7 @@ def test_app_components_cover_tables_forms_views_charts_and_dashboard():
     forms = {t.schema: f"form-{t.schema}" for t in DEFS.tables}
     views, charts = all_view_ids(), chart_ids()
     entity_ids = {t.schema: f"meta-{t.schema}" for t in DEFS.tables}
+    assert not [c for c in app.app_components(DEFS, forms, views, charts, "dash-1") if c["@odata.type"].endswith(".entity")]
     comps = app.app_components(DEFS, forms, views, charts, "dash-1", entity_ids)
     by_type = {}
     for c in comps:
@@ -97,6 +98,21 @@ def test_ensure_views_creates_missing_views_with_the_object_type_code():
     assert pruefung["returnedtypecode"] == "nst_kisystem" and "olderthan-x-days" in pruefung["fetchxml"]
     assert 'object="10625"' in pruefung["layoutxml"]
     assert ("nst_kisystem", "Prüfung überfällig") in ids
+    bodies = {json.loads(c.request.content)["name"]: json.loads(c.request.content) for c in create.calls}
+    assert bodies["Aktive KI-Systeme"]["isdefault"] is True and bodies["Hochrisiko-Systeme"]["isdefault"] is False
+
+
+@respx.mock
+def test_stock_default_views_are_switched_off():
+    respx.get(url__startswith=API + "EntityDefinitions").respond(200, json={"ObjectTypeCode": 10625})
+    mine = "00000000-0000-0000-0001-000000000001"
+    respx.get(API + "savedqueries").mock(side_effect=lambda request: httpx.Response(200, json={"value": (
+        [{"savedqueryid": mine, "name": "mine"}, {"savedqueryid": "stock-1", "name": "Active X"}] if "isdefault" in str(request.url) else [])}))
+    respx.post(API + "savedqueries").mock(return_value=created("savedqueries", mine))
+    demote = respx.patch(API + "savedqueries(stock-1)").mock(return_value=httpx.Response(204))
+    app.ensure_views(new_client(), DEFS, 58000)
+    assert demote.call_count == 8  # one stock default per table
+    assert json.loads(demote.calls[0].request.content) == {"isdefault": False}
 
 
 @respx.mock
@@ -116,6 +132,7 @@ def test_ensure_forms_embeds_the_view_ids_and_raises_on_a_missing_one():
     ids = app.ensure_forms(new_client(), DEFS, all_view_ids())
     assert len(ids) == len(DEFS.tables) == create.call_count
     ki = next(json.loads(c.request.content) for c in create.calls if json.loads(c.request.content)["objecttypecode"] == "nst_kisystem")
+    assert ki["isdefault"] is True
     assert ki["type"] == app.FORM_MAIN and "00000000-0000-0000-0000-000000000000" not in ki["formxml"]
     with pytest.raises(KeyError):
         app.ensure_forms(new_client(), DEFS, {})
@@ -161,7 +178,6 @@ def test_ensure_app_module_creates_the_app_and_sitemap_and_publishes():
     respx.get(API + "appmodules").respond(200, json={"value": []})
     respx.get(url__startswith=API + "appmodules/Microsoft.Dynamics.CRM.RetrieveUnpublishedMultiple").respond(200, json={"value": []})
     respx.get(API + "sitemaps").respond(200, json={"value": []})
-    respx.get(url__startswith=API + "EntityDefinitions").respond(200, json={"MetadataId": "meta"})
     create_app = respx.post(API + "appmodules").mock(return_value=created("appmodules", APP_ID))
     create_sm = respx.post(API + "sitemaps").mock(return_value=created("sitemaps", SM_ID))
     add = respx.post(API + "AddAppComponents").mock(return_value=httpx.Response(204))
@@ -174,6 +190,6 @@ def test_ensure_app_module_creates_the_app_and_sitemap_and_publishes():
     assert "{dash-1}" in json.loads(create_sm.calls[0].request.content)["sitemapxml"]
     comps = json.loads(add.calls[0].request.content)["Components"]
     assert comps[0] == {"@odata.type": "Microsoft.Dynamics.CRM.sitemap", "sitemapid": SM_ID}
-    assert not [c for c in comps if c["@odata.type"].endswith(".entity")]
+    assert not [c for c in comps if c["@odata.type"].endswith(".entity")]  # components off: no table ids are fetched or sent
     assert APP_ID in json.loads(publish.calls[0].request.content)["ParameterXml"]
     assert "MSCRM.SolutionUniqueName" not in publish.calls[0].request.headers

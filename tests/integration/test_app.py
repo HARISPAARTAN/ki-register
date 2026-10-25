@@ -44,6 +44,20 @@ def test_every_defined_view_exists(client, defs):
         assert client.find_one("savedqueries", f"name eq '{v.name}' and returnedtypecode eq '{v.table}'", "savedqueryid") is not None, v.name
 
 
+def _components(client, app_id):
+    return sorted((x["componenttype"], x["objectid"]) for x in client.get(f"RetrieveAppComponents(AppModuleId={app_id})")["value"])
+
+
+def test_no_stray_table_components_and_our_forms_and_views_are_the_defaults(client, settings, defs):
+    app_id = _app_id(client, settings)
+    assert [c for c in _components(client, app_id) if c[0] == 1] == []  # ADR-002: tables reach the app through the site map
+    for t in defs.tables:
+        forms = client.get_all("systemforms", {"$select": "name,isdefault", "$filter": f"objecttypecode eq '{t.schema}' and type eq 2"})
+        assert [f["name"] for f in forms if f["isdefault"]] == [f"{t.display} Hauptformular"], t.schema
+        views = client.get_all("savedqueries", {"$select": "name,isdefault", "$filter": f"returnedtypecode eq '{t.schema}' and querytype eq 0 and isdefault eq true"})
+        assert len(views) == 1, t.schema
+
+
 def test_apply_app_is_idempotent(client, settings, defs):
     def snapshot():
         tables = [t.schema for t in defs.tables]
@@ -55,6 +69,8 @@ def test_apply_app_is_idempotent(client, settings, defs):
                 app.find_app_module(client, "nst_kiregister"))
 
     before = snapshot()
+    components_before = _components(client, _app_id(client, settings))
     result = app.apply_app(client, settings, defs)
     assert result["views"] == 13 and result["forms"] == 8 and result["charts"] == 3
     assert snapshot() == before
+    assert _components(client, _app_id(client, settings)) == components_before
