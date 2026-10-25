@@ -118,7 +118,8 @@ def test_role_is_looked_up_by_template_id_first():
     respx.get(API + f"systemusers({USER})/systemuserroles_association").respond(200, json={"value": [{"roleid": ROLE}]})
     bootstrap.ensure_application_user(new_client(), CLIENT_ID)
     assert roles.call_count == 1
-    assert "roletemplateid eq 627090ff-40a3-4053-8790-584edc5be201" in str(roles.calls[0].request.url).replace("%20", " ").replace("+", " ")
+    # The Web API rejects `roletemplateid eq <guid>` (400, 0x80060888, checked against Dev); the lookup spelling is `_roletemplateid_value`.
+    assert roles.calls[0].request.url.params["$filter"] == f"_roletemplateid_value eq 627090ff-40a3-4053-8790-584edc5be201 and _businessunitid_value eq {BU}"
 
 
 @respx.mock

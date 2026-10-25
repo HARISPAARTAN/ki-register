@@ -30,7 +30,9 @@ def ensure_application_user(client: DataverseClient, client_id: str) -> str:
         user_id = created["systemuserid"] if isinstance(created, dict) else created
         log.info("Anwendungsbenutzer %s angelegt", user_id)
     in_root = f"_businessunitid_value eq {root_bu}"
-    role = (client.find_one("roles", f"roletemplateid eq {SYSTEM_ADMINISTRATOR_TEMPLATE} and {in_root}", "roleid")
+    # The filter needs the lookup spelling `_roletemplateid_value`: the Web API rejects `roletemplateid eq <guid>` (400, 0x80060888), and an
+    # error status never reaches the fallback by name.
+    role = (client.find_one("roles", f"_roletemplateid_value eq {SYSTEM_ADMINISTRATOR_TEMPLATE} and {in_root}", "roleid")
             or client.find_one("roles", f"name eq '{SYSTEM_ADMINISTRATOR}' and {in_root}", "roleid"))
     if not role:
         raise RuntimeError("Rolle System Administrator nicht gefunden")
