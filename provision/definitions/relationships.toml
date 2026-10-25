@@ -89,4 +89,4 @@ schema = "nst_mitarbeiter_teilnahme"
 referenced = "nst_mitarbeiter"
 referencing = "nst_schulungsteilnahme"
 lookup = { schema = "nst_Mitarbeiter", display = "Mitarbeiter", required = true }
-delete = "Cascade"
+delete = "Restrict"

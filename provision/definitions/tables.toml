@@ -169,7 +169,7 @@ notes = true
   display = "Prüfung überfällig"
   type = "formula"
   result = "bool"
-  formula = "nst_status = 'Status KI-System'.'In Betrieb' && !IsBlank(nst_naechstepruefung) && nst_naechstepruefung < Today()"
+  formula = "nst_status = 'Status KI-System'.'In Betrieb' && !IsBlank(nst_naechstepruefung) && nst_naechstepruefung < UTCToday()"
 
 [[table]]
 schema = "nst_anwendungsfall"

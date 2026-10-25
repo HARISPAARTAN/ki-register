@@ -25,7 +25,7 @@ def ensure_application_user(client: DataverseClient, client_id: str) -> str:
     else:
         created = client.post("systemusers", {"applicationid": client_id, "businessunitid@odata.bind": f"/businessunits({root_bu})"},
                               solution=False, component="Anwendungsbenutzer")
-        # with Prefer: return=representation the Web API may answer with the entity body instead of an OData-EntityId header
+        # defensive: a create normally answers 204 with OData-EntityId, which client.post turns into the id
         user_id = created["systemuserid"] if isinstance(created, dict) else created
         log.info("Anwendungsbenutzer %s angelegt", user_id)
     role = client.find_one("roles", f"name eq '{SYSTEM_ADMINISTRATOR}' and _businessunitid_value eq {root_bu}", "roleid")

@@ -30,7 +30,7 @@ def test_get_sends_odata_headers_and_bearer():
     assert c.get("WhoAmI") == {"UserId": "u"}
     req = route.calls.last.request
     assert req.headers["Authorization"] == "Bearer t0ken" and req.headers["OData-Version"] == "4.0" and req.headers["Accept"] == "application/json"
-    assert req.headers["Prefer"] == "return=representation" and "MSCRM.SolutionUniqueName" not in req.headers
+    assert "Prefer" not in req.headers and "MSCRM.SolutionUniqueName" not in req.headers
 
 
 @respx.mock

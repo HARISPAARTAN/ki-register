@@ -102,12 +102,12 @@ def column_payload(table: Table, col: Column, choice_ids: dict[str, str]) -> dic
 
 
 def relationship_payload(rel: Relationship) -> dict:
-    """One-to-many relationship; Lookup.SchemaName is the Pascal-cased schema name (Dataverse derives the lower-case logical name)."""
+    """One-to-many relationship; the associated-menu label is omitted (UseCollectionName) because a 1031 label is rejected in an English-base environment; Lookup.SchemaName is the Pascal-cased schema name (Dataverse derives the lower-case logical name)."""
     return {"@odata.type": ODATA + "OneToManyRelationshipMetadata", "SchemaName": rel.schema,
             "ReferencedEntity": rel.referenced, "ReferencingEntity": rel.referencing,
             "CascadeConfiguration": {"Assign": "NoCascade", "Delete": rel.delete, "Merge": "NoCascade", "Reparent": "NoCascade",
                                      "Share": "NoCascade", "Unshare": "NoCascade"},
-            "AssociatedMenuConfiguration": {"Behavior": "UseLabel", "Group": "Details", "Label": label(rel.lookup.display), "Order": 10000},
+            "AssociatedMenuConfiguration": {"Behavior": "UseCollectionName", "Group": "Details", "Order": 10000},
             "Lookup": {"@odata.type": ODATA + "LookupAttributeMetadata", "SchemaName": rel.lookup.schema,
                        "DisplayName": label(rel.lookup.display), "Description": label(rel.lookup.display),
                        "RequiredLevel": _required(rel.lookup.required)}}

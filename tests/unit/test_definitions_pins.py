@@ -16,7 +16,7 @@ def test_relationship_delete_behaviour_is_pinned():
         "nst_kisystem_risikobewertung": "Restrict",
         "nst_kisystem_massnahme": "Restrict",
         "nst_schulung_teilnahme": "Cascade",
-        "nst_mitarbeiter_teilnahme": "Cascade",
+        "nst_mitarbeiter_teilnahme": "Restrict",
     }
     for r in d.relationships:
         assert r.delete == expected.get(r.schema, "RemoveLink"), r.schema

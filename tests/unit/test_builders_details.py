@@ -97,3 +97,14 @@ def test_has_notes_follows_the_definition_and_url_email_lengths():
     ma = D.table("nst_mitarbeiter")
     mail = next(c for c in ma.columns if c.schema == "nst_email")
     assert builders.column_payload(ma, mail, {})["MaxLength"] == 200
+
+
+def test_relationship_menu_has_no_label_so_english_base_orgs_accept_it():
+    from pathlib import Path
+
+    from kiregister import builders
+    from kiregister.definitions import load_definitions
+    defs = load_definitions(Path(__file__).resolve().parents[2] / "provision" / "definitions")
+    for rel in defs.relationships:
+        menu = builders.relationship_payload(rel)["AssociatedMenuConfiguration"]
+        assert menu["Behavior"] == "UseCollectionName" and "Label" not in menu

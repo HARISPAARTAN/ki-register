@@ -54,7 +54,7 @@ def test_column_payloads_by_type():
     boo = builders.column_payload(KI, col("nst_transparenzpflicht"), ids)
     assert boo["OptionSet"]["TrueOption"]["Value"] == 1 and boo["OptionSet"]["FalseOption"]["Label"]["LocalizedLabels"][0]["Label"] == "Nein"
     formula = builders.column_payload(KI, col("nst_pruefungueberfaellig"), ids)
-    assert formula["@odata.type"].endswith("BooleanAttributeMetadata") and "Today()" in formula["FormulaDefinition"]
+    assert formula["@odata.type"].endswith("BooleanAttributeMetadata") and "UTCToday()" in formula["FormulaDefinition"]
     assert formula["SourceType"] == 3
     url = builders.column_payload(KI, col("nst_dokumentation"), ids)
     assert url["Format"] == "Url"

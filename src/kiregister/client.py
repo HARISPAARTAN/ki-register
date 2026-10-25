@@ -77,7 +77,7 @@ class DataverseClient:
 
     def _headers(self, solution: bool) -> dict:
         h = {"Authorization": f"Bearer {self._tokens.token()}", "OData-MaxVersion": "4.0", "OData-Version": "4.0",
-             "Accept": "application/json", "Content-Type": "application/json; charset=utf-8", "Prefer": "return=representation"}
+             "Accept": "application/json", "Content-Type": "application/json; charset=utf-8"}
         if solution:
             if not self.solution:
                 raise ValueError("Lösung nicht gesetzt: DataverseClient(..., solution=...)")
