@@ -4,6 +4,10 @@ from kiregister import app, security
 
 pytestmark = pytest.mark.dataverse
 
+# Stock roles are found by their template id: their names are translated in an environment with another base language (as in bootstrap.py).
+SYSTEM_ADMINISTRATOR_TEMPLATE = "627090ff-40a3-4053-8790-584edc5be201"
+SYSTEM_CUSTOMIZER_TEMPLATE = "119f245c-3cc8-4b62-b31c-d1a046ced15d"
+
 
 def _app_id(client, settings):
     app_id = app.find_app_module(client, "nst_kiregister")
@@ -67,13 +71,22 @@ def _root_role_id(client, name):
     return role["roleid"]
 
 
+def _stock_role_id(client, template):
+    """The stock role of the root unit with this `roletemplateid`. The filter needs the lookup spelling `_roletemplateid_value`;
+    `roletemplateid eq <guid>` is rejected by the Web API (400, 0x80060888)."""
+    root, _ = security.root_business_unit(client)
+    role = client.find_one("roles", f"_roletemplateid_value eq {template} and _businessunitid_value eq {root}", "roleid")
+    assert role is not None, template
+    return role["roleid"]
+
+
 def test_the_user_roles_may_open_the_app_and_the_owner_role_may_not(client, settings, defs):
     """T8-D2: the export mapped only System Administrator and System Customizer, so a user holding just an nst role could not open the app."""
     held = _app_role_ids(client, _app_id(client, settings))
     for name in defs.app.roles:
         assert _root_role_id(client, name) in held, name
     assert _root_role_id(client, security.OWNER_ROLE) not in held  # no user holds it
-    assert {_root_role_id(client, "System Administrator"), _root_role_id(client, "System Customizer")} <= held  # apply removes nothing
+    assert {_stock_role_id(client, SYSTEM_ADMINISTRATOR_TEMPLATE), _stock_role_id(client, SYSTEM_CUSTOMIZER_TEMPLATE)} <= held  # apply removes nothing
 
 
 def test_our_forms_and_views_are_the_only_defaults_of_each_table(client, defs):
