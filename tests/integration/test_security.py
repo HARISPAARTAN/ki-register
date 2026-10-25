@@ -34,6 +34,14 @@ def test_business_units_are_children_of_the_root_and_have_a_default_team(client,
     assert set(teams) == set(defs.security.business_units)
 
 
+def test_child_business_units_inherit_the_roles(client, defs):
+    rows = client.get("businessunits", {"$select": "businessunitid,name"})["value"]
+    children = {r["name"]: r["businessunitid"] for r in rows if r["name"] in defs.security.business_units}
+    for unit, unit_id in children.items():
+        names = {r["name"] for r in client.get_all("roles", {"$select": "name", "$filter": f"_businessunitid_value eq {unit_id}"})}
+        assert {r.name for r in defs.security.roles} <= names, unit
+
+
 def test_governance_role_has_global_read_on_every_table(client, defs):
     role = client.find_one("roles", "name eq 'nst KI-Governance'", "roleid")
     privs = {p["name"] for p in client.get_all(f"roles({role['roleid']})/roleprivileges_association", {"$select": "name"})}

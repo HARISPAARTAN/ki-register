@@ -60,7 +60,7 @@ def test_security_roles():
     roles = {r.name: r for r in d.security.roles}
     assert roles["nst KI-Governance"].extra == {"prvReadUser": "Global", "prvReadTeam": "Global", "prvReadBusinessUnit": "Global"}
     assert roles["nst Leser"].tables["nst_organisation"] == {"read": "Local"}
-    assert roles["nst Fachbereich"].tables["nst_organisation"]["appendto"] == "Global"
+    assert roles["nst Fachbereich"].tables["nst_organisation"] == {"read": "Local", "appendto": "Local"}
     assert roles["nst Fachbereich"].extra == {}
 
 

@@ -40,8 +40,10 @@ def root_business_unit(client: DataverseClient) -> tuple[str, str]:
     return root["businessunitid"], root["name"]
 
 
-def ensure_business_units(client: DataverseClient, names: list[str]) -> dict[str, str]:
-    root, _ = root_business_unit(client)
+def ensure_business_units(client: DataverseClient, names: list[str], root: str | None = None) -> dict[str, str]:
+    """Child units of the root; pass `root` (from `root_business_unit`) to skip reading it again."""
+    if root is None:
+        root, _ = root_business_unit(client)
     rows = client.get("businessunits", {"$select": "businessunitid,name,_parentbusinessunitid_value"})["value"]
     existing = {r["name"]: r["businessunitid"] for r in rows}
     ids = {}
@@ -107,29 +109,37 @@ def ensure_roles(client: DataverseClient, defs: Definitions, root_bu: str) -> di
     return role_ids
 
 
-def ensure_column_security(client: DataverseClient, defs: Definitions, role_ids: dict[str, str]) -> str:
-    """Profile and field permissions. Users and teams are assigned to the profile in the portal (rebuild guide)."""
+def ensure_column_security(client: DataverseClient, defs: Definitions) -> str:
+    """Profile and field permissions (read, update, create all Allowed; a differing permission is repaired).
+
+    The profile is not bound to any role in code: the governance users are added to it in the portal
+    (`security.toml: roles_with_access` documents who it is for; rebuild guide)."""
     cs = defs.security.column_security
     prof = client.find_one("fieldsecurityprofiles", f"name eq '{cs.profile}'", "fieldsecurityprofileid")
     prof_id = prof["fieldsecurityprofileid"] if prof else client.post_id(
         "fieldsecurityprofiles", {"name": cs.profile, "description": "Zugriff auf gesicherte Spalten des KI-Registers"},
         component=f"Spaltensicherheitsprofil {cs.profile}")
-    existing = {(p["entityname"], p["attributelogicalname"]) for p in client.get_all(
-        "fieldpermissions", {"$select": "entityname,attributelogicalname", "$filter": f"_fieldsecurityprofileid_value eq {prof_id}"})}
+    existing = {(p["entityname"], p["attributelogicalname"]): p for p in client.get_all(
+        "fieldpermissions", {"$select": "fieldpermissionid,entityname,attributelogicalname,canread,canupdate,cancreate",
+                             "$filter": f"_fieldsecurityprofileid_value eq {prof_id}"})}
+    wanted = {"canread": ALLOWED, "canupdate": ALLOWED, "cancreate": ALLOWED}
     for table, column in cs.columns:
-        if (table, column) in existing:
-            continue
-        client.post("fieldpermissions", {"entityname": table, "attributelogicalname": column, "canread": ALLOWED, "canupdate": ALLOWED, "cancreate": ALLOWED,
-                                         "fieldsecurityprofileid@odata.bind": f"/fieldsecurityprofiles({prof_id})"},
-                    component=f"Spaltenberechtigung {table}.{column}")
-        log.info("Spaltensicherheit %s.%s im Profil %s", table, column, cs.profile)
+        have = existing.get((table, column))
+        if have is None:
+            client.post("fieldpermissions", {"entityname": table, "attributelogicalname": column, **wanted,
+                                             "fieldsecurityprofileid@odata.bind": f"/fieldsecurityprofiles({prof_id})"},
+                        component=f"Spaltenberechtigung {table}.{column}")
+            log.info("Spaltensicherheit %s.%s im Profil %s", table, column, cs.profile)
+        elif any(have.get(k) != v for k, v in wanted.items()):
+            client.patch(f"fieldpermissions({have['fieldpermissionid']})", wanted, component=f"Spaltenberechtigung {table}.{column}")
+            log.info("Spaltensicherheit %s.%s korrigiert", table, column)
     return prof_id
 
 
 def apply_security(client: DataverseClient, settings: Settings, defs: Definitions) -> dict:
     root_bu, _ = root_business_unit(client)
-    bu_ids = ensure_business_units(client, defs.security.business_units)
+    bu_ids = ensure_business_units(client, defs.security.business_units, root_bu)
     teams = default_team_ids(client, bu_ids)
     roles = ensure_roles(client, defs, root_bu)
-    profile = ensure_column_security(client, defs, roles)
+    profile = ensure_column_security(client, defs)
     return {"business_units": len(bu_ids), "teams": len(teams), "roles": len(roles), "column_profile": profile}

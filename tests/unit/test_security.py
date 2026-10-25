@@ -154,7 +154,7 @@ def test_column_security_creates_profile_and_permission():
     profile = respx.post(API + "fieldsecurityprofiles").mock(
         return_value=httpx.Response(204, headers={"OData-EntityId": API + f"fieldsecurityprofiles({NEW})"}))
     perm = respx.post(API + "fieldpermissions").mock(return_value=httpx.Response(204))
-    assert security.ensure_column_security(new_client(), DEFS, {}) == NEW
+    assert security.ensure_column_security(new_client(), DEFS) == NEW
     assert json.loads(profile.calls[0].request.content)["name"] == "nst KI-Governance Felder"
     body = json.loads(perm.calls[0].request.content)
     assert body == {"entityname": "nst_kisystem", "attributelogicalname": "nst_internebewertung", "canread": 4, "canupdate": 4, "cancreate": 4,
@@ -164,8 +164,29 @@ def test_column_security_creates_profile_and_permission():
 @respx.mock
 def test_column_security_is_idempotent():
     respx.get(API + "fieldsecurityprofiles").respond(200, json={"value": [{"fieldsecurityprofileid": "fp"}]})
-    respx.get(API + "fieldpermissions").respond(200, json={"value": [{"entityname": "nst_kisystem", "attributelogicalname": "nst_internebewertung"}]})
+    respx.get(API + "fieldpermissions").respond(200, json={"value": [{"fieldpermissionid": "fperm", "entityname": "nst_kisystem", "attributelogicalname": "nst_internebewertung",
+                                                                      "canread": 4, "canupdate": 4, "cancreate": 4}]})
     profile = respx.post(API + "fieldsecurityprofiles").mock(return_value=httpx.Response(204))
     perm = respx.post(API + "fieldpermissions").mock(return_value=httpx.Response(204))
-    assert security.ensure_column_security(new_client(), DEFS, {}) == "fp"
+    assert security.ensure_column_security(new_client(), DEFS) == "fp"
     assert profile.call_count == 0 and perm.call_count == 0
+
+
+@respx.mock
+def test_column_security_repairs_a_permission_with_other_values():
+    respx.get(API + "fieldsecurityprofiles").respond(200, json={"value": [{"fieldsecurityprofileid": "fp"}]})
+    respx.get(API + "fieldpermissions").respond(200, json={"value": [{"fieldpermissionid": "fperm", "entityname": "nst_kisystem", "attributelogicalname": "nst_internebewertung",
+                                                                      "canread": 4, "canupdate": 0, "cancreate": 0}]})
+    create = respx.post(API + "fieldpermissions").mock(return_value=httpx.Response(204))
+    patch = respx.patch(API + "fieldpermissions(fperm)").mock(return_value=httpx.Response(204))
+    security.ensure_column_security(new_client(), DEFS)
+    assert create.call_count == 0 and patch.call_count == 1
+    assert json.loads(patch.calls[0].request.content) == {"canread": 4, "canupdate": 4, "cancreate": 4}
+
+
+@respx.mock
+def test_ensure_business_units_with_a_known_root_reads_the_list_once():
+    route = respx.get(url__startswith=API + "businessunits").mock(
+        return_value=httpx.Response(200, json={"value": [{"businessunitid": ROOT, "name": "org"}, {"businessunitid": ENERGIE, "name": "Nordstern Energie"}]}))
+    assert security.ensure_business_units(new_client(), ["Nordstern Energie"], ROOT) == {"Nordstern Energie": ENERGIE}
+    assert route.call_count == 1
