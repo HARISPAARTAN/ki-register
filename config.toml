@@ -1,0 +1,16 @@
+[solution]
+publisher_unique = "nordstern"
+publisher_display = "Nordstern Gruppe"
+prefix = "nst"
+option_prefix = 58000
+unique_name = "NordsternKIRegister"
+display_name = "Nordstern KI-Register"
+version = "1.0.0.0"
+
+[environments]
+dev = "DATAVERSE_URL_DEV"
+test = "DATAVERSE_URL_TEST"
+
+[paths]
+definitions = "provision/definitions"
+seed = "data/seed"
