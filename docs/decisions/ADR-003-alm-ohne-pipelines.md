@@ -9,7 +9,7 @@ Das Register soll einen vollständigen Lebenszyklus zeigen: die Lösung `Nordste
 
 ### Fristen für unverwaltete Entwicklerumgebungen
 
-Nordstern Dev und Nordstern Test sind unverwaltete Entwicklerumgebungen. Für sie gilt (Seite „important changes coming“, Abschnitt zur Abkündigung unverwalteter Entwicklerumgebungen und des Developer Plans):
+Nordstern Dev und Nordstern Test sind nach dem Entwurf (Abschnitte 3 und 13) unverwaltete Entwicklerumgebungen. Für sie gilt (Seite „important changes coming“, Abschnitt zur Abkündigung unverwalteter Entwicklerumgebungen und des Developer Plans):
 
 | Datum | Wirkung |
 |---|---|
@@ -70,4 +70,4 @@ Abgerufen am 2026-10-25 (Seitendatum `ms.date` in Klammern):
 - `pac solution` (`pack`, `unpack`, `--packagetype`): https://learn.microsoft.com/en-us/power-platform/developer/cli/reference/solution (2026-02-25)
 - Aktionen und Releases: https://github.com/microsoft/powerplatform-actions/releases
 
-Bestätigt sind die drei Fristen (2026-11-15, 2026-12-15, 2027-01-15), die Aussage, dass der Developer Plan keine Nutzungsrechte für Managed Environments enthält, und die Anforderung verwalteter Umgebungen für die Git-Integration. Berichtigt gegenüber dem Entwurf (Abschnitte 1 und 12), der Pipelines und Git-Integration gemeinsam an Managed Environments bindet: Für Pipelines gilt das nach der Seite zu Pipelines für alle Umgebungen außer den Entwicklerumgebungen. Nicht bestätigen ließ sich, ob die Durchsetzung ab Oktober 2026 (Blockade nach 30 Tagen) auch Entwicklerumgebungen als Ziel trifft; die Seite spricht von „unmanaged target environments“, ohne den Entwicklertyp auszunehmen oder zu nennen. Ebenfalls nicht geprüft sind Preise der Premium-Lizenzen (sie stehen hier bewusst nicht) und die Frage, ob ein Importlauf die 30-Tage-Inaktivitätsregel zurücksetzt.
+Bestätigt sind die drei Fristen (2026-11-15, 2026-12-15, 2027-01-15), die Aussage, dass der Developer Plan keine Nutzungsrechte für Managed Environments enthält, und die Anforderung verwalteter Umgebungen für die Git-Integration. Berichtigt gegenüber dem Entwurf (Abschnitte 1 und 12), der Pipelines und Git-Integration gemeinsam an Managed Environments bindet: Für Pipelines gilt das nach der Seite zu Pipelines für alle Umgebungen außer den Entwicklerumgebungen. Nicht bestätigen ließ sich, ob die Durchsetzung ab Oktober 2026 (Blockade nach 30 Tagen) auch Entwicklerumgebungen als Ziel trifft; die Seite spricht von „unmanaged target environments“, ohne den Entwicklertyp auszunehmen oder zu nennen. Ebenfalls nicht geprüft sind Preise der Premium-Lizenzen (sie stehen hier bewusst nicht), die Frage, ob ein Importlauf die 30-Tage-Inaktivitätsregel zurücksetzt, und der tatsächliche Umgebungstyp von Dev und Test im Admin Center (die Annahme „unverwaltete Entwicklerumgebung“ stammt aus dem Entwurf; die Workflows hängen nicht vom Typ ab).
