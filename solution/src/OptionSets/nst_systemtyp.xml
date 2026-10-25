@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<optionset Name="nst_systemtyp" localizedName="Systemtyp" description="Systemtyp" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <OptionSetType>picklist</OptionSetType>
+  <IsGlobal>1</IsGlobal>
+  <IntroducedVersion>1.0.0.0</IntroducedVersion>
+  <IsCustomizable>1</IsCustomizable>
+  <displaynames>
+    <displayname description="Systemtyp" languagecode="1031" />
+    <displayname description="Systemtyp" languagecode="1033" />
+  </displaynames>
+  <Descriptions>
+    <Description description="Systemtyp" languagecode="1031" />
+    <Description description="Systemtyp" languagecode="1033" />
+  </Descriptions>
+  <options>
+    <option value="580000000" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Eigenentwicklung" languagecode="1031" />
+        <label description="Eigenentwicklung" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000001" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Eingekaufte Standardsoftware" languagecode="1031" />
+        <label description="Eingekaufte Standardsoftware" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000002" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="KI-Modell mit allgemeinem Verwendungszweck (GPAI)" languagecode="1031" />
+        <label description="KI-Modell mit allgemeinem Verwendungszweck (GPAI)" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000003" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="In Produkt eingebettet" languagecode="1031" />
+        <label description="In Produkt eingebettet" languagecode="1033" />
+      </labels>
+    </option>
+  </options>
+</optionset>

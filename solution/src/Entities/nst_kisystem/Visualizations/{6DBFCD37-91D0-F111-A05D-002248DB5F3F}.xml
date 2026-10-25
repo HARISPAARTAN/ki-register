@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<visualization xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedqueryvisualizationid>{6DBFCD37-91D0-F111-A05D-002248DB5F3F}</savedqueryvisualizationid>
+  <datadescription>
+    <datadefinition>
+      <fetchcollection>
+        <fetch mapping="logical" aggregate="true">
+          <entity name="nst_kisystem">
+            <attribute name="nst_kisystemid" alias="count" aggregate="count" />
+            <attribute name="nst_risikoklasse" groupby="true" alias="groupby_col" />
+            <attribute name="nst_organisation" groupby="true" alias="groupby_series" />
+          </entity>
+        </fetch>
+      </fetchcollection>
+      <categorycollection>
+        <category alias="groupby_col">
+          <measurecollection>
+            <measure alias="count" />
+          </measurecollection>
+        </category>
+      </categorycollection>
+    </datadefinition>
+  </datadescription>
+  <presentationdescription>
+    <Chart Palette="BrightPastel">
+      <Series>
+        <Series ChartType="StackedColumn" IsValueShownAsLabel="True" />
+      </Series>
+      <ChartAreas>
+        <ChartArea>
+          <AxisY LabelAutoFitMinFontSize="8">
+            <MajorGrid LineColor="246, 246, 246" />
+          </AxisY>
+          <AxisX LabelAutoFitMinFontSize="8" />
+        </ChartArea>
+      </ChartAreas>
+      <Titles>
+        <Title Text="KI-Systeme nach Risikoklasse" Alignment="TopLeft" />
+      </Titles>
+      <Legends>
+        <Legend Enabled="True" />
+      </Legends>
+    </Chart>
+  </presentationdescription>
+  <isdefault>0</isdefault>
+  <LocalizedNames>
+    <LocalizedName description="KI-Systeme nach Risikoklasse" languagecode="1033" />
+  </LocalizedNames>
+  <Descriptions>
+    <Description description="KI-Systeme nach Risikoklasse" languagecode="1033" />
+  </Descriptions>
+  <IsCustomizable>1</IsCustomizable>
+  <IntroducedVersion>1.0.0.0</IntroducedVersion>
+  <CanBeDeleted>1</CanBeDeleted>
+</visualization>

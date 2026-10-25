@@ -1,0 +1,1 @@
+nst_pruefungueberfaellig: =nst_status = global_nst_status_kisystem.'580000003' && !IsBlank(nst_naechstepruefung) && nst_naechstepruefung < UTCToday()

@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<optionset Name="nst_rolle_kivo" localizedName="Rolle nach KI-Verordnung" description="Rolle nach KI-Verordnung" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <OptionSetType>picklist</OptionSetType>
+  <IsGlobal>1</IsGlobal>
+  <IntroducedVersion>1.0.0.0</IntroducedVersion>
+  <IsCustomizable>1</IsCustomizable>
+  <displaynames>
+    <displayname description="Rolle nach KI-Verordnung" languagecode="1031" />
+    <displayname description="Rolle nach KI-Verordnung" languagecode="1033" />
+  </displaynames>
+  <Descriptions>
+    <Description description="Rolle nach KI-Verordnung" languagecode="1031" />
+    <Description description="Rolle nach KI-Verordnung" languagecode="1033" />
+  </Descriptions>
+  <options>
+    <option value="580000000" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Anbieter" languagecode="1031" />
+        <label description="Anbieter" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000001" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Betreiber" languagecode="1031" />
+        <label description="Betreiber" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000002" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Einführer" languagecode="1031" />
+        <label description="Einführer" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000003" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Händler" languagecode="1031" />
+        <label description="Händler" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000004" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Produkthersteller" languagecode="1031" />
+        <label description="Produkthersteller" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000005" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Bevollmächtigter" languagecode="1031" />
+        <label description="Bevollmächtigter" languagecode="1033" />
+      </labels>
+    </option>
+  </options>
+</optionset>

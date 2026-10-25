@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<visualization xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedqueryvisualizationid>{70BFCD37-91D0-F111-A05D-002248DB5F3F}</savedqueryvisualizationid>
+  <datadescription>
+    <datadefinition>
+      <fetchcollection>
+        <fetch mapping="logical" aggregate="true">
+          <entity name="nst_massnahme">
+            <attribute name="nst_massnahmeid" alias="count" aggregate="count" />
+            <attribute name="nst_status" groupby="true" alias="groupby_col" />
+          </entity>
+        </fetch>
+      </fetchcollection>
+      <categorycollection>
+        <category alias="groupby_col">
+          <measurecollection>
+            <measure alias="count" />
+          </measurecollection>
+        </category>
+      </categorycollection>
+    </datadefinition>
+  </datadescription>
+  <presentationdescription>
+    <Chart Palette="BrightPastel">
+      <Series>
+        <Series ChartType="Pie" IsValueShownAsLabel="True" />
+      </Series>
+      <ChartAreas>
+        <ChartArea>
+          <AxisY LabelAutoFitMinFontSize="8">
+            <MajorGrid LineColor="246, 246, 246" />
+          </AxisY>
+          <AxisX LabelAutoFitMinFontSize="8" />
+        </ChartArea>
+      </ChartAreas>
+      <Titles>
+        <Title Text="Maßnahmen nach Status" Alignment="TopLeft" />
+      </Titles>
+      <Legends>
+        <Legend Enabled="True" />
+      </Legends>
+    </Chart>
+  </presentationdescription>
+  <isdefault>0</isdefault>
+  <LocalizedNames>
+    <LocalizedName description="Maßnahmen nach Status" languagecode="1033" />
+  </LocalizedNames>
+  <Descriptions>
+    <Description description="Maßnahmen nach Status" languagecode="1033" />
+  </Descriptions>
+  <IsCustomizable>1</IsCustomizable>
+  <IntroducedVersion>1.0.0.0</IntroducedVersion>
+  <CanBeDeleted>1</CanBeDeleted>
+</visualization>

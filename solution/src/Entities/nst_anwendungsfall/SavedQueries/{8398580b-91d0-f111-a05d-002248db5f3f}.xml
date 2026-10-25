@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<savedqueries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedquery>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <isquickfindquery>0</isquickfindquery>
+    <isprivate>0</isprivate>
+    <isdefault>1</isdefault>
+    <savedqueryid>{8398580b-91d0-f111-a05d-002248db5f3f}</savedqueryid>
+    <layoutxml>
+      <grid name="resultset" jump="nst_name" select="1" icon="1" preview="1">
+        <row name="result" id="nst_anwendungsfallid">
+          <cell name="nst_kennung" width="125" />
+          <cell name="nst_name" width="200" />
+          <cell name="nst_organisation" width="125" />
+          <cell name="nst_antragsteller" width="125" />
+          <cell name="nst_status" width="125" />
+          <cell name="nst_gewuenschterstart" width="125" />
+        </row>
+      </grid>
+    </layoutxml>
+    <querytype>0</querytype>
+    <fetchxml>
+      <fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false">
+        <entity name="nst_anwendungsfall">
+          <attribute name="nst_anwendungsfallid" />
+          <attribute name="nst_kennung" />
+          <attribute name="nst_name" />
+          <attribute name="nst_organisation" />
+          <attribute name="nst_antragsteller" />
+          <attribute name="nst_status" />
+          <attribute name="nst_gewuenschterstart" />
+          <filter type="and">
+            <condition attribute="nst_status" operator="in">
+              <value>580000000</value>
+              <value>580000001</value>
+            </condition>
+          </filter>
+          <order attribute="nst_gewuenschterstart" descending="false" />
+        </entity>
+      </fetch>
+    </fetchxml>
+    <IntroducedVersion>1.0.0.0</IntroducedVersion>
+    <LocalizedNames>
+      <LocalizedName description="Offene Anträge" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Offene Anträge" languagecode="1033" />
+    </Descriptions>
+  </savedquery>
+</savedqueries>

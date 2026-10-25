@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<savedqueries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedquery>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <isquickfindquery>0</isquickfindquery>
+    <isprivate>0</isprivate>
+    <isdefault>1</isdefault>
+    <savedqueryid>{8f98580b-91d0-f111-a05d-002248db5f3f}</savedqueryid>
+    <layoutxml>
+      <grid name="resultset" jump="nst_name" select="1" icon="1" preview="1">
+        <row name="result" id="nst_mitarbeiterid">
+          <cell name="nst_name" width="125" />
+          <cell name="nst_organisation" width="200" />
+          <cell name="nst_funktion" width="125" />
+          <cell name="nst_email" width="125" />
+          <cell name="nst_kiverantwortlich" width="125" />
+        </row>
+      </grid>
+    </layoutxml>
+    <querytype>0</querytype>
+    <fetchxml>
+      <fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false">
+        <entity name="nst_mitarbeiter">
+          <attribute name="nst_mitarbeiterid" />
+          <attribute name="nst_name" />
+          <attribute name="nst_organisation" />
+          <attribute name="nst_funktion" />
+          <attribute name="nst_email" />
+          <attribute name="nst_kiverantwortlich" />
+          <order attribute="nst_name" descending="false" />
+        </entity>
+      </fetch>
+    </fetchxml>
+    <IntroducedVersion>1.0.0.0</IntroducedVersion>
+    <LocalizedNames>
+      <LocalizedName description="Aktive Mitarbeiter" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Aktive Mitarbeiter" languagecode="1033" />
+    </Descriptions>
+  </savedquery>
+</savedqueries>

@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<optionset Name="nst_schulung_status" localizedName="Schulungsstatus" description="Schulungsstatus" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <OptionSetType>picklist</OptionSetType>
+  <IsGlobal>1</IsGlobal>
+  <IntroducedVersion>1.0.0.0</IntroducedVersion>
+  <IsCustomizable>1</IsCustomizable>
+  <displaynames>
+    <displayname description="Schulungsstatus" languagecode="1031" />
+    <displayname description="Schulungsstatus" languagecode="1033" />
+  </displaynames>
+  <Descriptions>
+    <Description description="Schulungsstatus" languagecode="1031" />
+    <Description description="Schulungsstatus" languagecode="1033" />
+  </Descriptions>
+  <options>
+    <option value="580000000" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Geplant" languagecode="1031" />
+        <label description="Geplant" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000001" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Abgeschlossen" languagecode="1031" />
+        <label description="Abgeschlossen" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000002" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Überfällig" languagecode="1031" />
+        <label description="Überfällig" languagecode="1033" />
+      </labels>
+    </option>
+  </options>
+</optionset>

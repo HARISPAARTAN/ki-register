@@ -1,0 +1,121 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Dashboard xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <LocalizedNames>
+    <LocalizedName description="KI-Register Übersicht" languagecode="1033" />
+  </LocalizedNames>
+  <Descriptions>
+    <Description description="KI-Register Übersicht" languagecode="1033" />
+  </Descriptions>
+  <FormId>{995a285a-91d0-f111-a05d-002248db5f3f}</FormId>
+  <IsCustomizable>1</IsCustomizable>
+  <IsDefault>0</IsDefault>
+  <FormXml>
+    <forms type="dashboard">
+      <form>
+        <tabs>
+          <tab name="dash" verticallayout="true" id="{7D285836-7419-59E7-BEDD-534155EF567C}">
+            <labels>
+              <label description="KI-Register Übersicht" languagecode="1033" />
+            </labels>
+            <columns>
+              <column width="100%">
+                <sections>
+                  <section name="s1" showlabel="false" columns="11" id="{EB969830-C94B-53FB-8876-7B3E3E839EDC}">
+                    <labels>
+                      <label description="" languagecode="1033" />
+                    </labels>
+                    <rows>
+                      <row>
+                        <cell id="{632ACA9D-A928-5464-A540-A368A1EA0CC6}" showlabel="true" rowspan="12" colspan="1">
+                          <labels>
+                            <label description="KI-Systeme nach Risikoklasse" languagecode="1033" />
+                          </labels>
+                          <control id="comp_0" classid="{E7A81278-8635-4d9e-8D4D-59480B391C5B}">
+                            <parameters>
+                              <ViewId>{7398580b-91d0-f111-a05d-002248db5f3f}</ViewId>
+                              <IsUserView>false</IsUserView>
+                              <RelationshipName />
+                              <TargetEntityType>nst_kisystem</TargetEntityType>
+                              <AutoExpand>Fixed</AutoExpand>
+                              <EnableQuickFind>false</EnableQuickFind>
+                              <EnableViewPicker>false</EnableViewPicker>
+                              <VisualizationId>{6dbfcd37-91d0-f111-a05d-002248db5f3f}</VisualizationId>
+                              <IsUserChart>false</IsUserChart>
+                              <EnableChartPicker>false</EnableChartPicker>
+                              <ChartGridMode>Chart</ChartGridMode>
+                            </parameters>
+                          </control>
+                        </cell>
+                        <cell id="{67079D3F-4FB9-5D61-9AEF-AB0089B67255}" showlabel="true" rowspan="12" colspan="1">
+                          <labels>
+                            <label description="Prüfung überfällig" languagecode="1033" />
+                          </labels>
+                          <control id="comp_1" classid="{E7A81278-8635-4d9e-8D4D-59480B391C5B}">
+                            <parameters>
+                              <ViewId>{7a98580b-91d0-f111-a05d-002248db5f3f}</ViewId>
+                              <IsUserView>false</IsUserView>
+                              <RelationshipName />
+                              <TargetEntityType>nst_kisystem</TargetEntityType>
+                              <AutoExpand>Fixed</AutoExpand>
+                              <EnableQuickFind>false</EnableQuickFind>
+                              <EnableViewPicker>false</EnableViewPicker>
+                              <RecordsPerPage>10</RecordsPerPage>
+                            </parameters>
+                          </control>
+                        </cell>
+                      </row>
+                      <row>
+                        <cell id="{F6746C65-D532-5625-8EBA-3DEAB72D50A3}" showlabel="true" rowspan="12" colspan="1">
+                          <labels>
+                            <label description="Maßnahmen nach Status" languagecode="1033" />
+                          </labels>
+                          <control id="comp_2" classid="{E7A81278-8635-4d9e-8D4D-59480B391C5B}">
+                            <parameters>
+                              <ViewId>{8698580b-91d0-f111-a05d-002248db5f3f}</ViewId>
+                              <IsUserView>false</IsUserView>
+                              <RelationshipName />
+                              <TargetEntityType>nst_massnahme</TargetEntityType>
+                              <AutoExpand>Fixed</AutoExpand>
+                              <EnableQuickFind>false</EnableQuickFind>
+                              <EnableViewPicker>false</EnableViewPicker>
+                              <VisualizationId>{70bfcd37-91d0-f111-a05d-002248db5f3f}</VisualizationId>
+                              <IsUserChart>false</IsUserChart>
+                              <EnableChartPicker>false</EnableChartPicker>
+                              <ChartGridMode>Chart</ChartGridMode>
+                            </parameters>
+                          </control>
+                        </cell>
+                        <cell id="{9CBC605B-14C2-55B9-9837-62E68409CAAF}" showlabel="true" rowspan="12" colspan="1">
+                          <labels>
+                            <label description="Anwendungsfälle nach Status" languagecode="1033" />
+                          </labels>
+                          <control id="comp_3" classid="{E7A81278-8635-4d9e-8D4D-59480B391C5B}">
+                            <parameters>
+                              <ViewId>{8398580b-91d0-f111-a05d-002248db5f3f}</ViewId>
+                              <IsUserView>false</IsUserView>
+                              <RelationshipName />
+                              <TargetEntityType>nst_anwendungsfall</TargetEntityType>
+                              <AutoExpand>Fixed</AutoExpand>
+                              <EnableQuickFind>false</EnableQuickFind>
+                              <EnableViewPicker>false</EnableViewPicker>
+                              <VisualizationId>{bec4d73d-91d0-f111-a05d-002248db5f3f}</VisualizationId>
+                              <IsUserChart>false</IsUserChart>
+                              <EnableChartPicker>false</EnableChartPicker>
+                              <ChartGridMode>Chart</ChartGridMode>
+                            </parameters>
+                          </control>
+                        </cell>
+                      </row>
+                    </rows>
+                  </section>
+                </sections>
+              </column>
+            </columns>
+          </tab>
+        </tabs>
+      </form>
+    </forms>
+  </FormXml>
+  <IntroducedVersion>1.0.0.0</IntroducedVersion>
+  <IsTabletEnabled>0</IsTabletEnabled>
+</Dashboard>

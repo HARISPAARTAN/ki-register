@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<optionset Name="nst_massnahme_status" localizedName="Maßnahmenstatus" description="Maßnahmenstatus" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <OptionSetType>picklist</OptionSetType>
+  <IsGlobal>1</IsGlobal>
+  <IntroducedVersion>1.0.0.0</IntroducedVersion>
+  <IsCustomizable>1</IsCustomizable>
+  <displaynames>
+    <displayname description="Maßnahmenstatus" languagecode="1031" />
+    <displayname description="Maßnahmenstatus" languagecode="1033" />
+  </displaynames>
+  <Descriptions>
+    <Description description="Maßnahmenstatus" languagecode="1031" />
+    <Description description="Maßnahmenstatus" languagecode="1033" />
+  </Descriptions>
+  <options>
+    <option value="580000000" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Offen" languagecode="1031" />
+        <label description="Offen" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000001" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="In Arbeit" languagecode="1031" />
+        <label description="In Arbeit" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000002" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Erledigt" languagecode="1031" />
+        <label description="Erledigt" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000003" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Entfallen" languagecode="1031" />
+        <label description="Entfallen" languagecode="1033" />
+      </labels>
+    </option>
+  </options>
+</optionset>

@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<optionset Name="nst_datenart" localizedName="Datenart" description="Datenart" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <OptionSetType>picklist</OptionSetType>
+  <IsGlobal>1</IsGlobal>
+  <IntroducedVersion>1.0.0.0</IntroducedVersion>
+  <IsCustomizable>1</IsCustomizable>
+  <displaynames>
+    <displayname description="Datenart" languagecode="1031" />
+    <displayname description="Datenart" languagecode="1033" />
+  </displaynames>
+  <Descriptions>
+    <Description description="Datenart" languagecode="1031" />
+    <Description description="Datenart" languagecode="1033" />
+  </Descriptions>
+  <options>
+    <option value="580000000" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Personenbezogene Daten" languagecode="1031" />
+        <label description="Personenbezogene Daten" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000001" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Besondere Kategorien (Art. 9 DSGVO)" languagecode="1031" />
+        <label description="Besondere Kategorien (Art. 9 DSGVO)" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000002" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Beschäftigtendaten" languagecode="1031" />
+        <label description="Beschäftigtendaten" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000003" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Patientendaten" languagecode="1031" />
+        <label description="Patientendaten" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000004" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Kundendaten" languagecode="1031" />
+        <label description="Kundendaten" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000005" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Betriebs- und Sensordaten" languagecode="1031" />
+        <label description="Betriebs- und Sensordaten" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000006" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Keine personenbezogenen Daten" languagecode="1031" />
+        <label description="Keine personenbezogenen Daten" languagecode="1033" />
+      </labels>
+    </option>
+  </options>
+</optionset>

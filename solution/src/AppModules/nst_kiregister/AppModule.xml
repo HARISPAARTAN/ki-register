@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<AppModule>
+  <UniqueName>nst_kiregister</UniqueName>
+  <IntroducedVersion>1.0.0.0</IntroducedVersion>
+  <WebResourceId>953b9fac-1e5e-e611-80d6-00155ded156f</WebResourceId>
+  <OptimizedFor></OptimizedFor>
+  <statecode>0</statecode>
+  <statuscode>1</statuscode>
+  <FormFactor>1</FormFactor>
+  <ClientType>4</ClientType>
+  <NavigationType>0</NavigationType>
+  <AppModuleComponents>
+    <AppModuleComponent type="26" id="{7398580b-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="26" id="{7798580b-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="26" id="{7a98580b-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="26" id="{7d98580b-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="26" id="{8098580b-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="26" id="{8398580b-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="26" id="{8698580b-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="26" id="{8998580b-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="26" id="{8c98580b-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="26" id="{8f98580b-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="26" id="{9298580b-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="26" id="{9598580b-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="26" id="{9898580b-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="59" id="{6dbfcd37-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="59" id="{70bfcd37-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="59" id="{bec4d73d-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="60" id="{9b98580b-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="60" id="{c44f9611-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="60" id="{d44f9611-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="60" id="{e44f9611-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="60" id="{04509611-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="60" id="{24509611-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="60" id="{3c509611-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="60" id="{4f509611-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="60" id="{995a285a-91d0-f111-a05d-002248db5f3f}" />
+    <AppModuleComponent type="62" schemaName="nst_kiregister_sitemap" />
+  </AppModuleComponents>
+  <AppModuleRoleMaps>
+    <Role id="{627090ff-40a3-4053-8790-584edc5be201}" />
+    <Role id="{119f245c-3cc8-4b62-b31c-d1a046ced15d}" />
+  </AppModuleRoleMaps>
+  <LocalizedNames>
+    <LocalizedName description="KI-Register" languagecode="1033" />
+  </LocalizedNames>
+  <Descriptions>
+    <Description description="Register der KI-Systeme der Nordstern Gruppe (fiktiv, keine Rechtsberatung)" languagecode="1033" />
+  </Descriptions>
+  <appsettings>
+    <appsetting settingdefinitionid.uniquename="AppChannel">
+      <iscustomizable>1</iscustomizable>
+      <value>1</value>
+    </appsetting>
+  </appsettings>
+</AppModule>
