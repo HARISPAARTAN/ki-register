@@ -17,7 +17,7 @@ Voraussetzungen: eine Umgebung mit Dataverse-Datenbank (Region Europa, Währung 
 | Schritt | Befehl oder Weg | Wirkung |
 |---|---|---|
 | 1 | `uv run --env-file .env kiregister bootstrap --env dev` | legt den Anwendungsbenutzer des Dienstprinzipals mit der Rolle System Administrator an |
-| 2 | `gh workflow run import-dev.yml` (Actions, „Lösung nach Dev importieren“) oder Portal-Import eines Archivs, das aus `solution/src` gepackt wurde (`pac solution pack --zipfile NordsternKIRegister.zip --folder solution/src --packagetype Unmanaged`, auf dem Rechner der Eigentümerin) | bringt Herausgeber, Lösung, Auswahlfelder, Tabellen, Spalten, Beziehungen, Rollen, Spaltensicherheitsprofil, Ansichten, Formulare, Diagramme, Dashboard, Sitemap und die App samt Tabellenkomponenten und Rollen |
+| 2 | `gh workflow run import-dev.yml` (Actions, „Lösung nach Dev importieren“) oder Portal-Import eines Archivs, das aus `solution/src` gepackt wurde (`pac solution pack --zipfile NordsternKIRegister.zip --folder solution/src --packagetype Unmanaged`, mit installiertem Power Platform CLI auf dem Rechner der Eigentümerin; das Repository enthält nur die entpackte Quelle, kein Archiv) | bringt Herausgeber, Lösung, Auswahlfelder, Tabellen, Spalten, Beziehungen, Rollen, Spaltensicherheitsprofil, Ansichten, Formulare, Diagramme, Dashboard, Sitemap und die App samt Tabellenkomponenten und Rollen |
 | 3 | `uv run --env-file .env kiregister apply --env dev --only security` | legt Unternehmenseinheiten und Besitzerteams an (nicht Teil der Lösung) und prüft Rollen und Profil |
 | 4 | `uv run --env-file .env kiregister seed --env dev` | lädt das fiktive Register |
 | 5 | `uv run --env-file .env kiregister verify --env dev` | prüft alles; Exit-Code 1 bei Abweichung |

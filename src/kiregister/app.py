@@ -186,7 +186,8 @@ def ensure_app_roles(client: DataverseClient, app_id: str, role_names: list[str]
 
     Without it only System Administrator and System Customizer can open the app, so a user who holds just an nst role cannot (the
     exported AppModule.xml lists no other role). The role of the root business unit is associated, as for the two stock roles; the copies
-    in the child units follow their root role. Reads first and adds what is missing; it never removes an association."""
+    in the child units carry its id as `parentrootroleid`. That a user who holds only such a copy can open the app was not checked
+    (ADR-002). Reads first and adds what is missing; it never removes an association."""
     root, _ = root_business_unit(client)
     held = {r["roleid"] for r in client.get_all(f"appmodules({app_id})/appmoduleroles_association", {"$select": "roleid"})}
     added = []
