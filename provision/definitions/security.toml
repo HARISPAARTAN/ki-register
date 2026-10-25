@@ -11,8 +11,8 @@ privileges = ["prvReadUser", "prvReadTeam", "prvReadBusinessUnit"]
 name = "nst Fachbereich"
 # appendto on Organisation, KI-System and Mitarbeiter is needed to create an Anwendungsfall with its lookups.
 # Organisation (read, appendto): not listed in spec 5, but the lookup "Organisation" of an Anwendungsfall (company picker of the
-# canvas app) cannot be filled without read. Local suffices: records are owned by the unit's default team (spec 5), so a user
-# sees the company of their own unit and no other (ADR-002).
+# canvas app) cannot be filled without read. Local suffices: records are owned by the member-less owner team of the unit (ADR-002), so
+# a user with a unit-level role sees the company of their own unit and no other.
 [role.tables]
 nst_kisystem = { read = "Local", appendto = "Local" }
 nst_massnahme = { read = "Local" }
