@@ -1,56 +1,201 @@
 # Nordstern KI-Register
 
-Ein Register für KI-Systeme nach EU-KI-Verordnung (EU AI Act), gebaut auf Microsoft Dataverse und vollständig als Code provisioniert: Tabellen, Auswahlfelder, Beziehungen, Sicherheitsrollen, Formulare, Ansichten und die modellgesteuerte App entstehen aus den TOML-Definitionen unter `provision/definitions/`. Alle Daten sind fiktiv (Nordstern Gruppe).
+[![CI](https://github.com/HARISPAARTAN/ki-register/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/HARISPAARTAN/ki-register/actions/workflows/ci.yml)
 
-Dieses Projekt ist keine Rechtsberatung.
+English: [README.en.md](README.en.md)
+
+Ein Register für KI-Systeme nach der EU-KI-Verordnung (Verordnung (EU) 2024/1689, „EU AI Act“) für die fiktive Nordstern Gruppe mit drei Gesellschaften, gebaut auf Microsoft Dataverse und vollständig als Code provisioniert: Tabellen, Auswahlfelder, Beziehungen, Sicherheitsrollen, Ansichten, Formulare, Diagramme, Dashboard und die modellgesteuerte App entstehen aus TOML-Definitionen über die Dataverse Web API. Die exportierte Lösungsquelle liegt im Repository; GitHub Actions exportieren sie aus Dev und liefern sie als verwaltete Lösung nach Test. **Dieses Projekt ist keine Rechtsberatung.** Alle Daten sind erfunden.
 
 Rechtsstand der Einstufungen: Verordnung (EU) 2024/1689 in der Fassung der Verordnung (EU) 2026/1744, Stand 2026-10-25; keine Rechtsberatung.
 
-Status: in Arbeit.
+**Status: Meilenstein 1 (Registerkern).** Repository-Version 0.1.0, Lösung `NordsternKIRegister` 1.1.0.0. Folgen: Meilenstein 2 (Erfassungs-App und Genehmigungsfluss), 3 (Agent), 4 (Governance und Schaufenster).
 
-## Entscheidungen aus Review 1
+## Architektur
 
-- Die Ansicht "Meine Anträge" entfällt in Meilenstein 1: `nst_antragsteller` ist ein Nachschlagefeld auf Mitarbeiter, nicht der angemeldete Benutzer. Die Canvas-App zur Anmeldung in Meilenstein 2 zeigt die eigenen Anträge der Benutzerin oder des Benutzers.
-- In Meilenstein 1 hat nur das KI-System ein ausdrückliches Hauptformular; alle übrigen Tabellen verwenden das erzeugte Standardformular.
-- Diese Punkte werden in ADR-002 übernommen.
+```mermaid
+flowchart LR
+    subgraph Repo["Repository ki-register"]
+        defs["provision/definitions/*.toml"]
+        pkg["src/kiregister (Python 3.13, uv)"]
+        seed["data/seed/*.csv"]
+        src["solution/src (Lösungsquelle)"]
+        wf[".github/workflows"]
+    end
+    subgraph Tenant["Entra-Mandant der Eigentümerin"]
+        sp["App-Registrierung ki-register-automation"]
+        subgraph Dev["Nordstern Dev (Dataverse)"]
+            devsol["Lösung NordsternKIRegister, Version 1.1.0.0"]
+        end
+        subgraph Test["Nordstern Test (Dataverse)"]
+            testsol["verwaltete Lösung, ohne Seed"]
+        end
+    end
+    defs --> pkg
+    seed --> pkg
+    pkg -->|"bootstrap, apply, seed, verify über die Web API"| devsol
+    devsol -->|"export-solution.yml: pac export und unpack, Pull Request"| src
+    src -->|"import-dev.yml: unmanaged"| devsol
+    src -->|"deploy-test.yml bei Tag v*: pac pack managed und import"| testsol
+    pkg -->|"verify nur Lösungskomponenten"| testsol
+    wf -.->|"führt aus"| sp
+    sp -.->|"Dienstprinzipal"| devsol
+    sp -.->|"Dienstprinzipal"| testsol
+```
 
-## Inbetriebnahme (Entwicklungsumgebung)
+Die TOML-Dateien sind die Quelle der Wahrheit; `solution/src` ist der Export daraus plus die Ergänzungen, die sich nur über den Lösungsimport setzen lassen (ADR-002, ADR-003). Das Datenmodell steht in [docs/erd.md](docs/erd.md).
 
-Einmalig, durch die Eigentümerin oder den Eigentümer nach `az login`:
+```
+provision/definitions/   TOML: Auswahlfelder, Tabellen, Beziehungen, Sicherheit, App
+src/kiregister/          Python-Paket: Web-API-Client, Builder, apply, seed, verify, CLI
+data/seed/               das fiktive Register als CSV
+solution/src/            exportierte Lösungsquelle (pac solution unpack)
+tools/                   erd.py (erzeugt docs/erd.md), setup_app_registration.sh
+docs/                    ERD, Entscheidungen, Wiederaufbau-Anleitung, Änderungsprotokoll
+tests/                   Unit-Tests (offline) und Integrationstests (Marker dataverse)
+.github/workflows/       ci, export-solution, import-dev, deploy-test
+```
 
-1. `bash tools/setup_app_registration.sh` legt die App-Registrierung `ki-register-automation` an und gibt Mandanten-ID, Client-ID und das Geheimnis (einmalig) aus. Die Werte kommen in die lokale, git-ignorierte `.env` (Vorlage: `.env.example`), nie in einen Chat.
-2. `uv run --env-file .env kiregister bootstrap --env dev` (und `--env test`) legt den Anwendungsbenutzer mit der Rolle Systemadministrator an; dafür wird die Azure-CLI-Sitzung der Eigentümerin oder des Eigentümers genutzt.
-3. `uv run --env-file .env kiregister apply --env dev --only metadata` legt Auswahlfelder, Tabellen, Spalten und Beziehungen in der Lösung `NordsternKIRegister` an; ein zweiter Lauf legt nichts mehr an.
-4. `uv run --env-file .env kiregister apply --env dev --only security` legt Unternehmenseinheiten, je Einheit ein mitgliederloses Besitzerteam `<Einheit> Datenbesitz`, vier Rollen (`nst KI-Governance`, `nst Fachbereich`, `nst Leser` und `nst Datenbesitz`, die nur den Besitzerteams zugewiesen wird) mit ihren Privilegien und das Spaltensicherheitsprofil an (idempotent). Das Zuweisen von Rollen und Profil an Benutzer ist ein Portalschritt.
-5. `uv run --env-file .env kiregister apply --env dev --only app` legt Ansichten, Formulare, Diagramme, das Dashboard, die Sitemap und die modellgesteuerte App `nst_kiregister` an (idempotent). Prüfung durch den Eigentümer: https://make.powerapps.com, Apps, KI-Register, Abspielen (vier Bereiche, Ansichten, Formular-Registerkarten).
-   Voraussetzung für `verify` (Schritt 6) und für die Integrationstests (Schritt 7): **der Lösungsimport nach Dev, `gh workflow run import-dev.yml`** (Actions, „Lösung nach Dev importieren“). `apply` macht die Tabellen nicht zu App-Komponenten (`AddAppComponents` ignoriert die Tabellen-IDs, ADR-002). Das leistet der Lösungsimport: `solution/src` führt die acht Tabellen als `AppModuleComponent` Typ 1, und danach sind sie Komponenten der App. `kiregister verify` prüft das in jedem Modus (`RetrieveAppComponents`, Typ 1), und `deploy-test.yml` damit auch für Test; `ValidateApp` meldete in Dev nach dem Import keinen Hinweis mehr (einmalige Handprüfung am 2026-10-25: vorher 27 Warnungen, nachher 0, 34 App-Komponenten). Hat Dev Änderungen, die noch nicht im Repository stehen, zuerst `export-solution.yml` ausführen und den Pull Request zusammenführen: der Import läuft mit `force-overwrite`. Rückfall in einer Umgebung ohne Import ist der Portalschritt „Vorhandene hinzufügen“; bis dahin zeigt die App die Tabellen nur über die Sitemap, und `ValidateApp` meldet Warnungen (im Abspielen sichtbar), keine Fehler.
-6. `uv run --env-file .env kiregister seed --env dev [--stichtag YYYY-MM-DD]` lädt das fiktive Register (drei Gesellschaften, 21 Mitarbeitende, 20 KI-Systeme, 27 Risikobewertungen, 42 Maßnahmen, 9 Schulungen, 51 Teilnahmen, 7 Anwendungsfälle) mit festen GUIDs (uuid5); ein zweiter Lauf innerhalb derselben Woche ändert nichts, denn die Verschiebung um ganze Wochen ändert die Datumswerte einmal pro Woche (der Name einer Risikobewertung endet mit dem Monat ihres verschobenen Datums). Die Schlüssel der CSV-Dateien sind undurchsichtige Bezeichner und werden nie umbenannt (ADR-002). Der Seed legt nichts an: Unternehmenseinheiten und Besitzerteams müssen durch `apply --only security` vorhanden sein, sonst bricht er mit einer Meldung ab. Die Datensätze gehören dem Besitzerteam ihrer Einheit. Alle Datumswerte sind relativ zum Stichtag (Standard: heute, UTC): die CSV-Daten sind auf den 2026-10-25 bezogen und werden um ganze Wochen verschoben, damit „überfällig“ wahr bleibt. Den Seed vor dem Aktivieren der Flows aus Meilenstein 2 laden, sonst lösen die Anlage-Auslöser aus.
-   `uv run --env-file .env kiregister verify --env dev` prüft Tabellen, Spalten, Nachschlagefelder, Auswahlfelder, Beziehungen, Rollen, Unternehmenseinheiten, Besitzerteams samt Mitgliedschaft (die Teams müssen leer und die Rolle `nst Datenbesitz` darf keinem Benutzer zugewiesen sein), das Spaltensicherheitsprofil, das App-Modul samt Tabellenkomponenten und die Seed-Anzahlen (Exit-Code 1 bei Abweichung). Mit `KIREGISTER_VERIFY_NO_SEED=1` prüft `verify` nur Lösungskomponenten (Tabellen, Spalten, Nachschlagefelder, Auswahlfelder, Beziehungen, Rollen, Spaltensicherheitsprofil, App-Modul und dessen Tabellenkomponenten) und lässt Unternehmenseinheiten, Besitzerteams und Seed aus; so prüft `deploy-test.yml` die Testumgebung.
-7. Integrationstests: `uv run --env-file .env pytest tests/integration -m dataverse -v`. Voraussetzung ist der Lösungsimport aus Schritt 5: `tests/integration/test_app.py` verlangt, dass die Tabellen Komponenten der App sind, und scheitert in einer Umgebung, die nur Schritte 1 bis 4 und `apply --only app` durchlaufen hat.
+## Die vier Befehle
 
-## ALM: Export, Import und Deployment
+Aufruf: `uv run --env-file .env kiregister <Befehl> --env dev` (oder `--env test`). Die `.env` ist git-ignoriert (Vorlage: `.env.example`) und gehört nie in einen Chat oder ins Repository.
 
-Das Power Platform CLI (`pac`) läuft nur auf GitHub-Runnern, über die Aktionen von `microsoft/powerplatform-actions` (festgelegt auf den Commit-SHA, den der Tag `v1` am 2026-10-25 hatte; alle Aktionen von Dritten sind auf einen Commit-SHA festgelegt, der Tag steht als Kommentar im Workflow, `.github/dependabot.yml` schlägt Änderungen vor), nie auf dem Arbeitsrechner. Die Anmeldung nutzt den Dienstprinzipal und die fünf Repository-Geheimnisse `TENANT_ID`, `CLIENT_ID`, `CLIENT_SECRET`, `DATAVERSE_URL_DEV` und `DATAVERSE_URL_TEST`. Begründung, Fristen für Entwicklerumgebungen und Lizenzlage: ADR-003.
+| Befehl | Wirkung |
+|---|---|
+| `bootstrap` | legt den Anwendungsbenutzer des Dienstprinzipals mit der Rolle System Administrator an (einmal je Umgebung, mit der Azure-CLI-Sitzung der Eigentümerin oder des Eigentümers nach `az login`) |
+| `apply [--only metadata\|security\|app]` | legt an oder aktualisiert, löscht nie. `metadata`: Herausgeber, Lösung (setzt deren Version), Auswahlfelder, Tabellen, Spalten, Beziehungen. `security`: Unternehmenseinheiten, je Einheit ein mitgliederloses Besitzerteam, vier Rollen mit Privilegien, Spaltensicherheitsprofil. `app`: Ansichten, Formulare, Diagramme, Dashboard, Sitemap, die App `KI-Register` und die Rollen, die sie öffnen dürfen. Ein zweiter Lauf ändert nichts |
+| `seed [--stichtag YYYY-MM-DD]` | lädt das fiktive Register mit festen GUIDs. Alle Datumswerte sind relativ zum Stichtag (Standard: heute, UTC) und werden um ganze Wochen verschoben, damit „überfällig“ wahr bleibt. Legt keine Einheiten oder Teams an: vorher `apply --only security` |
+| `verify` | prüft Tabellen, Spalten, Nachschlagefelder, Auswahlfelder, Beziehungen, Rollen, das Spaltensicherheitsprofil, das App-Modul samt Tabellenkomponenten, Unternehmenseinheiten, Besitzerteams (leer; die Rolle `nst Datenbesitz` darf keinem Benutzer gehören) und die Seed-Anzahlen; Exit-Code 1 bei Abweichung. Mit `KIREGISTER_VERIFY_NO_SEED=1` nur die Lösungskomponenten: so prüft `deploy-test.yml` die Testumgebung |
+
+## Eine Umgebung aufbauen
+
+Voraussetzungen: eine Umgebung mit Dataverse-Datenbank, `az login`, die App-Registrierung (`bash tools/setup_app_registration.sh` gibt Mandanten-ID, Client-ID und das Geheimnis einmalig aus) und die fünf Geheimnisse in der `.env` und in GitHub (siehe ALM).
+
+**Reihenfolge für eine frische Umgebung** (aus dem Entwurf abgeleitet, auf einer frischen Umgebung noch nicht durchgespielt):
+
+1. `bootstrap`: Anwendungsbenutzer anlegen.
+2. **Lösung aus dem Quelltext importieren** (`gh workflow run import-dev.yml` oder im Portal, [Wiederaufbau-Anleitung](docs/nachbau-anleitung.md)). Der Import bringt Tabellen, Spalten, Beziehungen, Rollen, Spaltensicherheitsprofil, Ansichten, Formulare, Diagramme, Dashboard, Sitemap und die App samt Tabellenkomponenten und Rollen mit.
+3. `apply --only security`: Unternehmenseinheiten und Besitzerteams (sie gehören nicht zur Lösung).
+4. `seed`.
+5. `verify`.
+
+Das volle `apply` (Metadaten, Sicherheit, App) vor dem Import ist der Weg der Code-first-Entwicklung: So ist Dev entstanden, danach kam einmal der Import, der die Tabellen zu Komponenten der App macht (`AddAppComponents` kann das auf dieser Umgebung nicht, ADR-002). Neben einem Import würde ein volles `apply` voraussichtlich Ansichten und Formulare doppelt anlegen, weil deren IDs je Umgebung verschieden sind.
+
+Der Import ist auch Voraussetzung der Prüfungen, die die Tabellenkomponenten der App verlangen: `verify` und `tests/integration/test_app.py`. Hat Dev Änderungen, die noch nicht im Repository stehen, läuft vorher `export-solution.yml` (der Import überschreibt, `force-overwrite`).
+
+Den Schalter für das Auditing der Umgebung setzt der Code nicht (Admin Center, Einstellungen, Audit und Protokolle); die Tabellen KI-System, Risikobewertung und Anwendungsfall tragen das Prüfprotokoll bereits (ADR-002).
+
+## ALM: Workflows und Geheimnisse
+
+`pac` läuft nur auf GitHub-Runnern, nie auf dem Arbeitsrechner. Alle Aktionen von Dritten sind auf einen Commit-SHA festgelegt (der Tag steht als Kommentar im Workflow; für `microsoft/powerplatform-actions` ist es der Stand, den der Tag `v1` am 2026-10-25 hatte), und `.github/dependabot.yml` schlägt Änderungen vor. Begründung, Fristen und Lizenzlage, warum keine Pipelines und keine Git-Integration: [ADR-003](docs/decisions/ADR-003-alm-ohne-pipelines.md).
 
 | Workflow | Auslöser | Wirkung |
 |---|---|---|
-| `ci.yml` | Push auf `main` und Pull Requests, die nicht nur `solution/**` ändern (Filter `paths-ignore`, bis zum nächsten Export nicht erprobt: ADR-003); der Job `integration` nur von Hand | Ruff und Unit-Tests; von Hand zusätzlich die Integrationstests (`-m dataverse`) gegen Dev, mit den Geheimnissen nur im Testschritt |
+| `ci.yml` | Push auf `main`; Pull Requests, die nicht nur `solution/**` ändern (der Filter hat beim ersten Export gehalten, ADR-003); der Job `integration` nur von Hand | Ruff und Unit-Tests; von Hand zusätzlich die Integrationstests (`-m dataverse`) gegen Dev, mit den Geheimnissen nur im Testschritt |
 | `export-solution.yml` | von Hand | exportiert `NordsternKIRegister` aus Dev (unmanaged und managed), entpackt nach `solution/src` und öffnet einen Pull Request, der nur Dateien unter `solution/src` enthalten darf; der Diff wird geprüft und der Pull Request zusammengeführt |
-| `import-dev.yml` | von Hand | packt `solution/src` als unmanaged und importiert nach Dev; gebraucht, wenn die Quelle von Hand ergänzt wurde (die Tabellenkomponenten der App) und beim Aufbau einer Umgebung aus dem Repository, danach folgt ein erneuter Export. Läuft mit `force-overwrite`: hat Dev Änderungen, die noch nicht im Repository stehen, zuerst `export-solution.yml` ausführen |
+| `import-dev.yml` | von Hand | packt `solution/src` als unmanaged und importiert nach Dev. Läuft mit `force-overwrite`: Hat Dev Änderungen, die noch nicht im Repository stehen, zuerst `export-solution.yml` ausführen |
 | `deploy-test.yml` | Tag `v*` oder von Hand | packt `solution/src` als managed, importiert nach Test und führt `kiregister verify --env test` mit `KIREGISTER_VERIFY_NO_SEED=1` aus |
 
-Ein Workflow startet über Actions, Workflow, „Run workflow“ oder mit `gh workflow run export-solution.yml`. Test erhält nur die Lösung: Unternehmenseinheiten, Besitzerteams und Seed-Daten sind keine Lösungskomponenten (ADR-003). Eine Umgebung entsteht entweder aus dem Code (`bootstrap`, `apply`, `seed`) oder aus der Lösung (Import; Unternehmenseinheiten, Besitzerteams und Seed kämen dann aus `apply --only security` und `seed`, was nicht erprobt ist). Beide Wege nacheinander sind ebenfalls nicht erprobt und legen voraussichtlich Ansichten und Formulare doppelt an, weil deren IDs je Umgebung verschieden sind.
+Test erhält nur die Lösung: Unternehmenseinheiten, Besitzerteams und Seed-Daten sind keine Lösungskomponenten. Einen Workflow startet man über Actions, „Run workflow“, oder mit `gh workflow run <Datei>`; Tags setzt der Mensch.
 
-## Daten
+Die fünf Geheimnisse trägt die Eigentümerin in die Repository-Einstellungen ein (Settings, Secrets and variables, Actions) und, für den lokalen Betrieb, in die `.env`:
 
-- Die Spalte `nst_eudatenbank` (KI-System) bedeutet: Registrierung in der EU-Datenbank nach Art. 49 ist erforderlich. Sie ist gesetzt für TalentFilter, Zahlungsausfall-Scoring und die Notaufnahme-Triage (Anhang III); nicht gesetzt für die Netzlast-Prognose (Anhang III Nr. 2: nationale Registrierung nach Art. 49 Abs. 5) und die Radiologie-Befundunterstützung (Anhang I, Medizinprodukt: Registrierung des Herstellers in EUDAMED).
-- Die Ansicht „Hochrisiko-Systeme“ zeigt nur die Risikoklasse Hoch (5 Systeme); ein verbotenes System (Art. 5) ist kein Hochrisiko-System.
-- Die Datumswerte des Seeds sind relativ zum Stichtag (`--stichtag`, siehe Schritt 6).
+| Geheimnis | Inhalt | Verwendet von |
+|---|---|---|
+| `TENANT_ID` | Mandanten-ID | alle Workflows mit Zugriff auf Dataverse |
+| `CLIENT_ID` | Anwendungs-ID der App-Registrierung `ki-register-automation` | alle Workflows mit Zugriff auf Dataverse |
+| `CLIENT_SECRET` | Client-Geheimnis der App-Registrierung | alle Workflows mit Zugriff auf Dataverse |
+| `DATAVERSE_URL_DEV` | URL von Nordstern Dev | `export-solution.yml`, `import-dev.yml`, Job `integration` |
+| `DATAVERSE_URL_TEST` | URL von Nordstern Test | `deploy-test.yml` |
 
-## Setup (English)
+## Rollenmodell
 
-Once, by the owner after `az login`: run `tools/setup_app_registration.sh`, put tenant ID, client ID and secret into the git-ignored `.env`, then `kiregister bootstrap --env dev|test` (creates the application user with System Administrator via the owner's Azure CLI token) and `kiregister apply --env dev --only metadata` (idempotent), then `kiregister apply --env dev --only security` (business units, one member-less owner team per unit, four roles (the fourth, `nst Datenbesitz`, only for the owner teams), column security profile; assigning users is a portal step), then `kiregister apply --env dev --only app` (views, forms, charts, dashboard, site map, the model-driven app), then the solution import (`gh workflow run import-dev.yml`, a precondition of `verify` and of `tests/integration/test_app.py`: it makes the tables components of the app, which `AddAppComponents` cannot do), then `kiregister seed --env dev [--stichtag YYYY-MM-DD]` (fictional register with deterministic GUIDs, owned by the owner team of each subsidiary; all dates are relative to the reference date, shifted in whole weeks from the anchor 2026-10-25, so a second run within the same week changes nothing and the dates change once per week; the name of an assessment ends with the month of its shifted date; provisions nothing, run `apply --only security` first; load it before the milestone-2 flows are activated) and `kiregister verify --env dev` (tables, columns, lookups, choices, relationships, roles, business units, owner teams and their membership, the column security profile, the app module with its table components, seed counts). Integration tests, which need the solution import: `pytest tests/integration -m dataverse`.
+Drei Unternehmenseinheiten (Kinder der Wurzel) sind die Zugriffsgrenzen: `Nordstern Projektmanagement`, `Nordstern Energie`, `Nordstern Klinikum`. Alle Tabellen sind benutzer- oder teameigen. Die Datensätze einer Gesellschaft gehören dem mitgliederlosen Besitzerteam `<Einheit> Datenbesitz`, dem die Rolle `nst Datenbesitz` (nur Lesen) die nötige Leseberechtigung gibt; so sieht ein Benutzer mit Rolle auf Einheitsebene nur die Datensätze der eigenen Einheit (ADR-002).
 
-ALM (English): `pac` runs on GitHub runners only (`microsoft/powerplatform-actions`, pinned to the commit SHA that the tag `v1` had on 2026-10-25; every third-party action is pinned to a commit SHA with the tag as a comment, and Dependabot proposes updates), never on the owner's machine. `ci.yml` runs on pushes to `main` and on pull requests that do not only touch `solution/**` (that filter is untried until the next export, ADR-003); its `integration` job is manual and holds the secrets in the test step only. `export-solution.yml` (manual) exports the solution unmanaged and managed from Dev, unpacks it to `solution/src` and opens a pull request that may only touch `solution/src`; `import-dev.yml` (manual) packs `solution/src` as unmanaged and imports it into Dev with `force-overwrite` (used to add the app's table components, which `AddAppComponents` cannot add on this environment: ADR-002; if Dev has changes that are not exported yet, run `export-solution.yml` first or they are overwritten); `deploy-test.yml` (tag `v*` or manual) packs managed, imports into Test and runs `kiregister verify --env test` with `KIREGISTER_VERIFY_NO_SEED=1`, which checks solution components only because business units, owner teams and seed data are not part of the solution. Why not pipelines or Git integration, and the developer-environment deadlines (2026-11-15, 2026-12-15, 2027-01-15): ADR-003.
+| Rolle | Zugriff |
+|---|---|
+| `nst KI-Governance` | Anlegen, Lesen, Schreiben, Löschen, Anfügen, Anfügen an, Zuweisen und Teilen auf allen `nst_`-Tabellen für die ganze Organisation; Lesen von Benutzer, Team und Unternehmenseinheit; als einzige Rolle im Spaltensicherheitsprofil `nst KI-Governance Felder` (gesicherte Spalte: interne Bewertung eines KI-Systems) |
+| `nst Fachbereich` | Lesen auf Einheitsebene: KI-System, Maßnahme, Schulung, Schulungsteilnahme, Mitarbeiter, Organisation; Anwendungsfall: Anlegen, Lesen, Schreiben, Anfügen nur für eigene Datensätze; keine Risikobewertung. Die gesäten Anwendungsfälle gehören dem Besitzerteam und sind für diese Rolle unsichtbar |
+| `nst Leser` | Lesen auf Einheitsebene auf allen `nst_`-Tabellen außer Risikobewertung; keine gesicherte Spalte |
+| `nst Datenbesitz` | nur Lesen, nur für die Besitzerteams; wird nie einem Benutzer zugewiesen, `verify` meldet jede Zuweisung |
 
-Legal state of the classifications: Regulation (EU) 2024/1689 as amended by Regulation (EU) 2026/1744, as of 2026-10-25; not legal advice. The `nst_eudatenbank` column means: registration in the EU database under Art. 49 is required.
+Die App `KI-Register` dürfen die drei Benutzerrollen öffnen (`provision/definitions/app.toml`), nicht `nst Datenbesitz`. Die Zuweisung von Rollen und Profil an Benutzer ist ein Portalschritt (ADR-002); die Spaltensicherheit gilt nicht für Systemadministratoren, die maskierte Darstellung zeigt also nur ein Konto ohne diese Rolle (ADR-001).
+
+## Das Register
+
+Das fiktive Register enthält drei Gesellschaften, 21 Mitarbeitende, 20 KI-Systeme, 27 Risikobewertungen, 42 Maßnahmen, 9 Schulungen mit 51 Teilnahmen und 7 Anwendungsfälle. Alle Namen sind erfunden, E-Mail-Domäne ist `nordstern.example`.
+
+| Gesellschaft | Systeme | Unannehmbar | Hoch | Begrenzt | Minimal |
+|---|---|---|---|---|---|
+| Nordstern Projektmanagement GmbH (Hamburg) | 7 | 1 | 1 | 1 | 4 |
+| Nordstern Energie GmbH (Kiel) | 7 | 0 | 2 | 1 | 4 |
+| Nordstern Klinikum gGmbH (Lübeck) | 6 | 0 | 2 | 1 | 3 |
+| **Summe** | **20** | **1** | **5** | **3** | **11** |
+
+| Gesellschaft | System | Risikoklasse | Hinweis |
+|---|---|---|---|
+| Projektmanagement | TalentFilter Bewerbungs-Screening | Hoch | Anhang III Nr. 4, eingekauft, Betreiber; Prüfung überfällig |
+| Projektmanagement | Baustellen-Mängelerkennung | Minimal | Eigenentwicklung, kein Anhang-III-Bereich |
+| Projektmanagement | Kunden-Chatbot Website | Begrenzt | Transparenz nach Art. 50; Prüfung überfällig |
+| Projektmanagement | Angebotstext-Generator | Minimal | Nutzung eines GPAI-Systems; Hinweis zu Art. 50 für erzeugte Texte |
+| Projektmanagement | Terminrisiko-Prognose | Minimal | |
+| Projektmanagement | Microsoft 365 Copilot | Minimal | GPAI in Nutzung; Schulung nach Art. 4 |
+| Projektmanagement | Emotionserkennung Baustellenpersonal | Unannehmbar | Art. 5 Abs. 1 lit. f; Status Abgelehnt |
+| Energie | Netzlast-Prognose zur Verteilnetzsteuerung | Hoch | Anhang III Nr. 2; nationale Registrierung statt EU-Datenbank |
+| Energie | Zahlungsausfall-Scoring Neukunden | Hoch | Anhang III Nr. 5 lit. b |
+| Energie | Störungsmeldungs-Chatbot | Begrenzt | Transparenz nach Art. 50 |
+| Energie | Zählerstand-Bilderkennung | Minimal | Prüfung überfällig |
+| Energie | Predictive Maintenance Trafostationen | Minimal | keine Sicherheitskomponente (Begründung im Register) |
+| Energie | Biometrische Zutrittskontrolle Umspannwerk | Minimal | 1:1-Verifikation ist keine Fernidentifikation |
+| Energie | Microsoft 365 Copilot | Minimal | Schulung nach Art. 4 |
+| Klinikum | Radiologie-Befundunterstützung | Hoch | über Anhang I (Medizinprodukt, Klasse IIa) |
+| Klinikum | Notaufnahme-Triage-Priorisierung | Hoch | Anhang III Nr. 5 lit. d; Status In Bewertung |
+| Klinikum | Bettenbelegungs-Prognose | Minimal | Status Freigegeben |
+| Klinikum | Patienten-Chatbot Terminvergabe | Begrenzt | Transparenz nach Art. 50 |
+| Klinikum | Diktat-LLM für Arztbriefe | Minimal | Datenschutzmaßnahmen; Prüfung überfällig |
+| Klinikum | Dienstplan-Optimierung Pflege | Minimal | keine Entscheidung nach Eigenschaften oder Leistung |
+
+Die Ansicht „Hochrisiko-Systeme“ zeigt die Risikoklasse Hoch (5 Systeme); das verbotene System (Art. 5) ist kein Hochrisiko-System. Vier Systeme in Betrieb haben immer eine überfällige Prüfung (die Datumswerte sind relativ zum Stichtag). Die Spalte `nst_eudatenbank` bedeutet: Registrierung in der EU-Datenbank nach Art. 49 ist erforderlich. Die Schlüssel der Seed-Dateien sind undurchsichtige Bezeichner und werden nie umbenannt (ADR-002).
+
+## Screenshots (Platzhalter)
+
+Die Aufnahmen stehen noch aus. **Alle Screenshots und das Video vor dem 2026-12-15 aufnehmen:** Dann werden Dev und Test ausgesetzt (siehe unten). Dateinamen unter `docs/screenshots/`:
+
+| Datei | Inhalt |
+|---|---|
+| `01-ansicht-aktive-ki-systeme.png` | App `KI-Register`, Bereich Register, Ansicht „Aktive KI-Systeme“ |
+| `02-ansicht-hochrisiko.png` | Ansicht „Hochrisiko-Systeme“ (5 Zeilen) |
+| `03-ansicht-pruefung-ueberfaellig.png` | Ansicht „Prüfung überfällig“ (4 Zeilen) |
+| `04-formular-einstufung.png` | Hauptformular eines KI-Systems, Registerkarte Einstufung |
+| `05-formular-gesichertes-feld.png` | Registerkarte Intern mit der gesicherten Spalte, einmal als Governance-Benutzer (lesbar), einmal als Benutzer ohne Systemadministrator-Rolle und ohne Profil (maskiert) |
+| `06-dashboard.png` | Dashboard „KI-Register Übersicht“ mit den drei Diagrammen und der Liste |
+| `07-unternehmenseinheiten.png` | Admin Center: Wurzel und die drei Unternehmenseinheiten, dazu die Besitzerteams |
+| `08-rolle-ki-governance.png` | Sicherheitsrolle `nst KI-Governance`: Privilegien und Zugriffsstufen |
+| `09-spaltensicherheitsprofil.png` | Profil `nst KI-Governance Felder` mit der Berechtigung für die interne Bewertung |
+| `10-loesung-und-verlauf.png` | Maker-Portal: Lösung `NordsternKIRegister` mit Komponenten und Lösungsverlauf |
+| `11-actions-export-und-deploy.png` | GitHub Actions: grüner CI-Lauf, Export-Pull-Request, Deployment nach Test |
+| `12-test-verwaltete-loesung.png` | Nordstern Test: die importierte verwaltete Lösung |
+
+## Frist der Entwicklerumgebungen und Nachbau
+
+Nordstern Dev und Nordstern Test sind kostenlose Entwicklerumgebungen aus dem Developer Plan. Microsoft stellt unverwaltete Entwicklerumgebungen ein: keine neuen ab 2026-11-15, **Aussetzung ab 2026-12-15, Löschung ab 2027-01-15**, es sei denn, die Umgebungen werden zu verwalteten Umgebungen. Das setzt Premium-Lizenzen voraus, die für dieses Projekt nicht vorgesehen sind. Belege (Microsoft Learn) und die Annahme zum Umgebungstyp, der nicht im Admin Center nachgelesen wurde: [ADR-003](docs/decisions/ADR-003-alm-ohne-pipelines.md). Alle Meilensteine enden deshalb vor dem 2026-12-10, und alles Wiederherstellbare liegt im Repository.
+
+**Nachbau in einer Testumgebung** (Standard-Testumgebung mit 30 Tagen, laut Microsoft Learn weiterhin verfügbar): dieselbe Reihenfolge wie oben, mit `DATAVERSE_URL_DEV` auf die neue Umgebung. `bootstrap`, Import, `apply --only security`, `seed`, `verify`; die Schritte stehen in der [Wiederaufbau-Anleitung](docs/nachbau-anleitung.md). Diese Reihenfolge ist abgeleitet und noch nicht auf einer frischen Umgebung erprobt.
+
+## Tests
+
+- Unit-Tests laufen offline (HTTP mit `respx` nachgebildet): `uv run pytest tests/unit -q`; dazu `uv run ruff check .`. Beides läuft in `ci.yml` bei jedem Push auf `main` und bei Pull Requests.
+- Integrationstests (Marker `dataverse`) laufen gegen Nordstern Dev und überspringen sich ohne `DATAVERSE_URL_DEV`: `uv run --env-file .env pytest tests/integration -m dataverse -v`. Voraussetzung ist der Lösungsimport (siehe oben).
+- `docs/erd.md` wird von `tools/erd.py` erzeugt (`uv run python tools/erd.py`); ein Unit-Test schlägt fehl, wenn die Datei vom Stand der Definitionen abweicht.
+
+## Dokumentation
+
+- [Datenmodell (ERD)](docs/erd.md)
+- [ADR-001 Dataverse statt SharePoint-Listen](docs/decisions/ADR-001-dataverse-statt-sharepoint.md)
+- [ADR-002 Code-first-Provisionierung](docs/decisions/ADR-002-code-first-provisionierung.md)
+- [ADR-003 ALM ohne Pipelines](docs/decisions/ADR-003-alm-ohne-pipelines.md)
+- [Wiederaufbau-Anleitung](docs/nachbau-anleitung.md)
+- [Änderungsprotokoll](docs/CHANGELOG.md)
+
+## Lizenz und Daten
+
+MIT-Lizenz (siehe `LICENSE`). Alle Daten sind erfunden: Gesellschaften, Mitarbeitende, E-Mail-Adressen (Domäne `nordstern.example`) und Systeme haben keinen Bezug zu realen Personen oder Unternehmen. Namen von Produkten wie Microsoft 365 Copilot stehen im Register als Beispiele für KI-Systeme in Unternehmen. Die Einstufungen sind Beispiele und **keine Rechtsberatung**.

@@ -1,15 +1,23 @@
-# ADR-002: Code-first-Provisionierung über die Web API
+# ADR-002: Code-first-Provisionierung über die Web API plus exportierte Lösungsquelle
 
 - Datum: 2026-10-25
 - Status: angenommen
 
 ## Kontext
 
-Handgeschriebenes Lösungs-XML ist brüchig und schwer zu prüfen; im Portal gebaut und exportiert ist nicht reproduzierbar. Das Register wird deshalb aus TOML-Definitionen (`provision/definitions/`) über die Dataverse Web API provisioniert (idempotent: lesen, dann anlegen oder aktualisieren, nie löschen). Die Quelle der Wahrheit sind die TOML-Dateien; die exportierte Lösungsquelle kommt als Artefakt für Microsoft-Werkzeuge hinzu.
+Das Register soll sich aus dem Repository neu aufbauen lassen und zugleich das Artefakt liefern, das Microsoft-Werkzeuge erwarten: eine Lösung, die sich entpacken, in die Versionsverwaltung legen und in eine andere Umgebung importieren lässt. Drei Wege kommen dafür in Frage:
+
+- **Lösungs-XML von Hand schreiben.** Das Format des SolutionPackager (`Customizations.xml`, `Entity.xml`, Formular-, Ansichts- und Diagramm-XML) ist umfangreich, schwer zu prüfen und bricht bei kleinen Fehlern erst beim Import. Ein Review sähe Hunderte Zeilen XML statt der Absicht dahinter.
+- **Nur im Portal bauen und exportieren.** Das Ergebnis ist ein Export, aber kein Weg dahin: Er ist nicht reproduzierbar, nicht prüfbar und verloren, wenn die Umgebung verschwindet (ADR-003: Dev und Test werden ab 2026-12-15 ausgesetzt).
+- **Über die Dataverse Web API provisionieren** und die Lösungsquelle exportieren. Die Absicht steht in Definitionen, die man liest und testet; die API legt die Komponenten an, und `pac solution unpack` erzeugt daraus die Quelle.
+
+## Entscheidung
+
+Das Register wird aus TOML-Definitionen (`provision/definitions/`) über die Dataverse Web API provisioniert: `bootstrap`, `apply`, `seed`, `verify` (idempotent: lesen, dann anlegen oder aktualisieren, nie löschen). **Die Quelle der Wahrheit sind die TOML-Dateien.** Die Lösungsquelle unter `solution/src` ist ein Export daraus (`export-solution.yml`, ADR-003) und kein Handwerk; die einzige Ergänzung von Hand sind die Tabellenkomponenten der App, die sich nur über den Lösungsimport setzen lassen (Chronik, Eintrag zu den Tabellenkomponenten). Aus den Definitionen entsteht auch das Diagramm des Datenmodells (`docs/erd.md`, erzeugt von `tools/erd.py`); die Wiederaufbau-Anleitung verweist je Schritt auf die passende Definitionsdatei. Lehnt die Umgebung eine Nutzlast ab, wird der Builder angepasst, nie die Umgebung von Hand, und die Abweichung steht in der Chronik unten.
 
 Der erste echte Lauf gegen die Entwicklungsumgebung (Nordstern Dev, Basissprache 1033) hat vier Abweichungen vom Entwurf erzwungen. Sie sind hier festgehalten, damit sie nicht erneut gebaut werden.
 
-## Entscheidung
+### Abweichungen vom Entwurf
 
 1. **Formelspalte mit `UTCToday()`.** Die Spalte `nst_pruefungueberfaellig` (KI-System) verwendet `UTCToday()` statt `Today()`. Die Formelspalte wurde akzeptiert; der Ersatz über einen Ansichtsfilter (`olderthan-x-days`) ist nicht nötig.
 2. **Kein Menüetikett an Beziehungen.** Die Basissprache der Organisation ist ausschließlich 1033. Ein Etikett mit LCID 1031 am zugehörigen Menü einer Beziehung wird abgelehnt. Das Menüetikett wird weggelassen (`AssociatedMenuConfiguration.Behavior = UseCollectionName`); sichtbar ist der Sammlungsname der Tabelle. Etiketten mit LCID 1031 auf Tabellen und Spalten werden akzeptiert, in einer Umgebung nur mit 1033 aber nicht gespeichert; gespeichert und geprüft wird das englische Etikett (1033).
@@ -18,7 +26,7 @@ Der erste echte Lauf gegen die Entwicklungsumgebung (Nordstern Dev, Basissprache
 
    Regel: **Ein Teilnahme-Datensatz hat genau eine übergeordnete Beziehung (Schulung). Seeds und Abbau löschen Teilnahmen vor Mitarbeitern.** Das Ausscheiden einer Person erfordert, ihre Teilnahmen zuvor zu entfernen oder zu archivieren.
 
-Weitere Entscheidungen aus Review 1 (siehe README): Die Ansicht "Meine Anträge" entfällt in Meilenstein 1, weil `nst_antragsteller` auf Mitarbeiter zeigt und nicht auf den angemeldeten Benutzer; in Meilenstein 1 hat nur das KI-System ein ausdrückliches Hauptformular, alle übrigen Tabellen verwenden das erzeugte Standardformular.
+Weitere Entscheidungen aus Review 1: Die Ansicht "Meine Anträge" entfällt in Meilenstein 1, weil `nst_antragsteller` auf Mitarbeiter zeigt und nicht auf den angemeldeten Benutzer; in Meilenstein 1 hat nur das KI-System ein ausdrückliches Hauptformular, alle übrigen Tabellen verwenden das erzeugte Standardformular.
 
 ## Folgen
 
@@ -26,6 +34,18 @@ Weitere Entscheidungen aus Review 1 (siehe README): Die Ansicht "Meine Anträge"
 - Die Beschriftung der Beziehungen im Menü folgt dem Sammlungsnamen; in einer Umgebung mit deutscher Basissprache könnte ein eigenes Etikett später ergänzt werden.
 - Seed- und Abbauabläufe (Meilenstein 1, Aufgaben 5 und 6) müssen die Reihenfolge Teilnahme vor Mitarbeiter einhalten.
 - Die Sicherheitsschicht (Unternehmenseinheiten, Rollen, Spaltensicherheit) wurde ohne Ablehnung durch die Web API angelegt; Beobachtungen stehen in der Chronik.
+- Eine neue Umgebung entsteht aus dem Repository in dieser Reihenfolge: `bootstrap`, Import der Lösungsquelle (`import-dev.yml` oder Portal), `apply --only security`, `seed`, `verify`. Ein volles `apply` vor dem Import ist der Weg der Code-first-Entwicklung und legt neben einem Import voraussichtlich Ansichten und Formulare doppelt an, weil deren IDs je Umgebung verschieden sind. Diese Reihenfolge ist abgeleitet und noch nicht auf einer frischen Umgebung durchgespielt (Wiederaufbau-Anleitung).
+
+## Was im Portal bleibt
+
+Alles, was die Web API oder `pac` erlauben, ist Code. Von Hand bleiben:
+
+- **Konto und Umgebungen:** Azure-Konto, Entra-Benutzer, Anmeldung zum Developer Plan und die beiden Umgebungen (Entwurf, Abschnitt 13).
+- **Anmeldung des Werkzeugs:** `tools/setup_app_registration.sh` und `kiregister bootstrap` brauchen `az login` der Eigentümerin oder des Eigentümers; das Client-Geheimnis kommt in die lokale `.env` und in die fünf GitHub-Geheimnisse (nie in einen Chat).
+- **Zuweisung an Benutzer:** `apply` legt die Rollen `nst KI-Governance`, `nst Fachbereich` und `nst Leser`, das Spaltensicherheitsprofil und dessen Berechtigungen an und lässt die drei Rollen die App öffnen, ordnet sie aber keinem Benutzer zu. Rollen, Profil und der Demo-Benutzer werden im Admin Center und in Entra vergeben.
+- **Auditing der Umgebung:** Die Tabellen KI-System, Risikobewertung und Anwendungsfall tragen das Prüfprotokoll im Code (`IsAuditEnabled`). Den Schalter der Umgebung (Admin Center, Einstellungen, Audit und Protokolle) setzt der Code nicht. In Dev stand er am 2026-10-25 auf „aus“ (`isauditenabled` der Organisation); solange schreibt Dataverse kein Protokoll, denn das Auditing wird zuerst auf Umgebungsebene eingeschaltet (Seite „Manage Dataverse auditing“).
+- **Tabellenkomponenten der App** ohne Lösungsimport: Portalschritt „Vorhandene hinzufügen“ (Chronik, Eintrag zu den Tabellenkomponenten).
+- **Spätere Meilensteine:** Verbindungen der Flows (Meilenstein 2), Agent und Wissensquellen in Copilot Studio (Meilenstein 3), Screenshots und Video (Meilenstein 4).
 
 ## Chronik der Web-API-Korrekturen
 
@@ -60,3 +80,6 @@ Weitere Entscheidungen aus Review 1 (siehe README): Die Ansicht "Meine Anträge"
 | 2026-10-25 | Seed | Löschen ist bewusst nicht automatisiert. Von Hand in dieser Reihenfolge, Kinder zuerst (Beziehungen mit `Restrict`): Teilnahmen, Maßnahmen, Risikobewertungen, Anwendungsfälle, KI-Systeme, Schulungen, Mitarbeiter, Organisationen |
 | 2026-10-25 | Seed | Den Seed vor dem Aktivieren der Flows aus Meilenstein 2 laden: ein erneutes Säen in eine Umgebung mit aktivem Genehmigungsfluss würde den Auslöser „Zeile hinzugefügt“ auslösen und Status überschreiben |
 | 2026-10-25 | Rechtsstand | Verordnung (EU) 2024/1689 in der Fassung der Verordnung (EU) 2026/1744 (Digitaler Omnibus KI, ABl. 2026-07-24, in Kraft 2026-07-27), nach mehreren Kanzleizusammenfassungen (der amtliche Text auf EUR-Lex war beim Abruf nicht lesbar): Pflichten für Hochrisiko-Systeme nach Anhang III ab 2027-12-02, nach Anhang I ab 2028-08-02; Art. 50 ab 2026-08-02 (Kennzeichnung nach Abs. 2 mit Übergangsfrist bis 2026-12-02 für vorher in Verkehr gebrachte Systeme); Art. 4 verpflichtet Anbieter und Betreiber zu Maßnahmen zur Förderung der KI-Kompetenz, ohne ein garantiertes Niveau. Art. 50 Abs. 1 ist eine Anbieterpflicht, die Offenlegung nach Abs. 4 UAbs. 2 trifft Betreiber nur für veröffentlichte Texte zur Information der Öffentlichkeit |
+| 2026-10-25 | App | Rollen der App: Der Export führte in `AppModuleRoleMaps` nur System Administrator und System Customizer auf, ein Benutzer mit nur einer `nst`-Rolle konnte die App nicht öffnen. `app.toml` listet `nst KI-Governance`, `nst Fachbereich` und `nst Leser` (nicht `nst Datenbesitz`: kein Benutzer hält sie). `apply --only app` liest nach dem Veröffentlichen die Verknüpfungen der App, fügt fehlende hinzu (`POST appmodules(<id>)/appmoduleroles_association/$ref`, ohne Lösungsheader, Wurzelkopie der Rolle) und entfernt nie eine. Der folgende Export (Pull Request 5) führt die drei Rollen in `AppModule.xml` und `AppModule_managed.xml` auf; der Integrationstest prüft die Verknüpfungen in Dev. Nicht geprüft: das Öffnen der App durch einen Benutzer, der nur eine `nst`-Rolle hält (es gibt noch keinen Demo-Benutzer), auch nicht für einen Benutzer in einer Untereinheit, dessen Rolle die Kopie der Wurzelrolle ist (die Kopie trägt `parentrootroleid` der Wurzelrolle, die beiden Standardrollen sind ebenfalls über ihre Wurzelrolle verknüpft) |
+| 2026-10-25 | Lösung | Version: `config.toml` führt die Version (1.1.0.0 nach Meilenstein 1, Entwurf 9). `apply --only metadata` setzt sie mit `PATCH solutions(<id>)` und `{"version": …}`, wenn sie von der Lösung abweicht (Dev, unverwaltete Lösung: wird angenommen; ein zweiter Lauf ändert nichts). Der Export (Pull Request 5) trägt 1.1.0.0; das Deployment mit dem Tag `v0.1.0` importiert sie als Update über 1.0.0.0 (kein Upgrade-Import, ADR-003) |
+| 2026-10-25 | Prüfung | `verify` fragt `RetrieveAppComponents(AppModuleId=…)` und verlangt für jede Tabelle eine Komponente vom Typ 1, auch im Modus nur für Lösungskomponenten; so ist die Aussage zu den Tabellenkomponenten in Test wiederholbar belegt |
