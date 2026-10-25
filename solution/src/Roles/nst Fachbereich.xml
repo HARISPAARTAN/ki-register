@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Role id="{3a81878d-8fd0-f111-a05d-002248db5f3f}" name="nst Fachbereich" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <IsCustomizable>1</IsCustomizable>
+  <IsAutoAssigned>0</IsAutoAssigned>
+  <RolePrivileges>
+    <RolePrivilege name="prvAppendnst_anwendungsfall" level="Basic" />
+    <RolePrivilege name="prvAppendTonst_kisystem" level="Local" />
+    <RolePrivilege name="prvAppendTonst_mitarbeiter" level="Local" />
+    <RolePrivilege name="prvAppendTonst_organisation" level="Local" />
+    <RolePrivilege name="prvCreatenst_anwendungsfall" level="Basic" />
+    <RolePrivilege name="prvCreateSharePointData" level="Global" />
+    <RolePrivilege name="prvReadnst_anwendungsfall" level="Basic" />
+    <RolePrivilege name="prvReadnst_kisystem" level="Local" />
+    <RolePrivilege name="prvReadnst_massnahme" level="Local" />
+    <RolePrivilege name="prvReadnst_mitarbeiter" level="Local" />
+    <RolePrivilege name="prvReadnst_organisation" level="Local" />
+    <RolePrivilege name="prvReadnst_schulung" level="Local" />
+    <RolePrivilege name="prvReadnst_schulungsteilnahme" level="Local" />
+    <RolePrivilege name="prvReadPluginAssembly" level="Global" />
+    <RolePrivilege name="prvReadPluginType" level="Global" />
+    <RolePrivilege name="prvReadSdkMessage" level="Global" />
+    <RolePrivilege name="prvReadSdkMessageProcessingStep" level="Global" />
+    <RolePrivilege name="prvReadSdkMessageProcessingStepImage" level="Global" />
+    <RolePrivilege name="prvReadSharePointData" level="Global" />
+    <RolePrivilege name="prvReadSharePointDocument" level="Global" />
+    <RolePrivilege name="prvWritenst_anwendungsfall" level="Basic" />
+    <RolePrivilege name="prvWriteSharePointData" level="Global" />
+  </RolePrivileges>
+</Role>

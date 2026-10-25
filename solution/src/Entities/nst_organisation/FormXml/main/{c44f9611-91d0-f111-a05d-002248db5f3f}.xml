@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{c44f9611-91d0-f111-a05d-002248db5f3f}</formid>
+    <IntroducedVersion>1.0.0.0</IntroducedVersion>
+    <FormPresentation>0</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab name="Allgemein" verticallayout="true" id="{3F566388-0A66-5188-A74E-83B5C641D04F}" expanded="true" showlabel="true">
+          <labels>
+            <label description="Allgemein" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section name="sec_0_0" showlabel="false" showbar="false" columns="1" id="{FA542830-16F4-5384-B077-EB059666A28D}">
+                  <labels>
+                    <label description="Allgemein" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{31B0B69E-676E-52BA-B971-EE2397251E92}">
+                        <labels>
+                          <label description="Name" languagecode="1033" />
+                        </labels>
+                        <control id="nst_name" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="nst_name" disabled="false" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+                <section name="sec_0_1" showlabel="false" showbar="false" columns="1" id="{03D88D87-CCC9-5D06-9D65-79563FFAC535}">
+                  <labels>
+                    <label description="Allgemein" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{1667059D-159B-530B-A945-B93CF26537A2}">
+                        <labels>
+                          <label description="Kurzname" languagecode="1033" />
+                        </labels>
+                        <control id="nst_kurzname" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="nst_kurzname" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{D0DD7E9E-540B-5997-88A9-2302297A4DF1}">
+                        <labels>
+                          <label description="Branche" languagecode="1033" />
+                        </labels>
+                        <control id="nst_branche" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="nst_branche" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{AA1AC4C3-1980-570C-9D37-D5BA91C8BF1C}">
+                        <labels>
+                          <label description="Business-Unit-Name" languagecode="1033" />
+                        </labels>
+                        <control id="nst_businessunitname" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="nst_businessunitname" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{5D95E543-2359-5026-8896-CF412200B256}">
+                        <labels>
+                          <label description="Sitz" languagecode="1033" />
+                        </labels>
+                        <control id="nst_sitz" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="nst_sitz" disabled="false" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Organisation Hauptformular" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Organisation Hauptformular" languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

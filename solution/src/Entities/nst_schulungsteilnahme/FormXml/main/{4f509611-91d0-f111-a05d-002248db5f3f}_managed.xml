@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{4f509611-91d0-f111-a05d-002248db5f3f}</formid>
+    <IntroducedVersion>1.0.0.0</IntroducedVersion>
+    <FormPresentation>0</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab name="Allgemein" verticallayout="true" id="{C629C0C6-36E2-5A55-AE81-6305AE688C37}" expanded="true" showlabel="true">
+          <labels>
+            <label description="Allgemein" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section name="sec_0_0" showlabel="false" showbar="false" columns="1" id="{85828808-BF21-5E1C-9359-48CCDF15D062}">
+                  <labels>
+                    <label description="Allgemein" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{D4BDF540-4B0F-5AC6-8836-7CB7A1E49454}">
+                        <labels>
+                          <label description="Name" languagecode="1033" />
+                        </labels>
+                        <control id="nst_name" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="nst_name" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{E7722DC0-8E87-5E54-A6E3-5DB8DDDC3437}">
+                        <labels>
+                          <label description="Schulung" languagecode="1033" />
+                        </labels>
+                        <control id="nst_schulung" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="nst_schulung" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{305E52C0-4C0D-500B-8FE9-3560385BA06B}">
+                        <labels>
+                          <label description="Mitarbeiter" languagecode="1033" />
+                        </labels>
+                        <control id="nst_mitarbeiter" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="nst_mitarbeiter" disabled="false" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+                <section name="sec_0_1" showlabel="false" showbar="false" columns="1" id="{C8B4A196-25D9-50AD-BF97-A264DAB5965E}">
+                  <labels>
+                    <label description="Allgemein" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{890A6916-4C8B-5773-B36D-589835C87E3D}">
+                        <labels>
+                          <label description="Status" languagecode="1033" />
+                        </labels>
+                        <control id="nst_status" classid="{3EF39988-22BB-4f0b-BBBE-64B5A3748AEE}" datafieldname="nst_status" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{BBC8DB81-BDCB-58E5-B04A-456B2484D6B6}">
+                        <labels>
+                          <label description="Abgeschlossen am" languagecode="1033" />
+                        </labels>
+                        <control id="nst_abgeschlossenam" classid="{5B773807-9FB2-42db-97C3-7A91EFF8ADFF}" datafieldname="nst_abgeschlossenam" disabled="false" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Schulungsteilnahme Hauptformular" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Schulungsteilnahme Hauptformular" languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

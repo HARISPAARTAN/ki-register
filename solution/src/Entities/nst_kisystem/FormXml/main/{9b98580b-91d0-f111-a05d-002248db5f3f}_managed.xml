@@ -1,0 +1,346 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{9b98580b-91d0-f111-a05d-002248db5f3f}</formid>
+    <IntroducedVersion>1.0.0.0</IntroducedVersion>
+    <FormPresentation>0</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab name="Allgemein" verticallayout="true" id="{8DCFF313-DD97-5C07-9CC5-89E6128E7E42}" expanded="true" showlabel="true">
+          <labels>
+            <label description="Allgemein" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section name="sec_0_0" showlabel="false" showbar="false" columns="1" id="{49C095B8-B514-5DF6-B8F6-72BB67B39A8F}">
+                  <labels>
+                    <label description="Allgemein" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{398EFF00-2E7D-5281-AC86-941BF560F2F3}">
+                        <labels>
+                          <label description="Kennung" languagecode="1033" />
+                        </labels>
+                        <control id="nst_kennung" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="nst_kennung" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{AB10B1FD-B6B1-592A-B765-AEE1E475B78B}">
+                        <labels>
+                          <label description="Name" languagecode="1033" />
+                        </labels>
+                        <control id="nst_name" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="nst_name" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{FE5A7AF5-E931-5A38-A81A-3334948D023A}">
+                        <labels>
+                          <label description="Organisation" languagecode="1033" />
+                        </labels>
+                        <control id="nst_organisation" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="nst_organisation" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{6F99210A-38E4-520B-B6B1-FC3609DFE014}">
+                        <labels>
+                          <label description="Fachbereich" languagecode="1033" />
+                        </labels>
+                        <control id="nst_fachbereich" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="nst_fachbereich" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{BE0EB322-405D-5E99-BEAB-D6A99682A952}">
+                        <labels>
+                          <label description="Verantwortlich" languagecode="1033" />
+                        </labels>
+                        <control id="nst_verantwortlicher" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="nst_verantwortlicher" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{61DA221C-D11E-50A7-812F-D013646DCD88}">
+                        <labels>
+                          <label description="Anbieter / Hersteller" languagecode="1033" />
+                        </labels>
+                        <control id="nst_anbieter" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="nst_anbieter" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{5CB69579-1713-5AC8-8813-8AEB0B11C387}">
+                        <labels>
+                          <label description="Systemtyp" languagecode="1033" />
+                        </labels>
+                        <control id="nst_systemtyp" classid="{3EF39988-22BB-4f0b-BBBE-64B5A3748AEE}" datafieldname="nst_systemtyp" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{42E99B6F-F450-5315-A5A7-3257B7ECF5E7}">
+                        <labels>
+                          <label description="Rolle nach KI-Verordnung" languagecode="1033" />
+                        </labels>
+                        <control id="nst_rolle" classid="{3EF39988-22BB-4f0b-BBBE-64B5A3748AEE}" datafieldname="nst_rolle" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{879CCF85-5D32-51A2-B423-4B22042CC9D6}">
+                        <labels>
+                          <label description="Status" languagecode="1033" />
+                        </labels>
+                        <control id="nst_status" classid="{3EF39988-22BB-4f0b-BBBE-64B5A3748AEE}" datafieldname="nst_status" disabled="false" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+                <section name="sec_0_1" showlabel="false" showbar="false" columns="1" id="{6A6971A4-830A-5064-B6DC-2A601E8805CB}">
+                  <labels>
+                    <label description="Allgemein" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{5D548AB6-1EFD-5BA5-951F-8E2EEC9A98E1}" rowspan="4">
+                        <labels>
+                          <label description="Zweck" languagecode="1033" />
+                        </labels>
+                        <control id="nst_zweck" classid="{E0DECE4B-6FC8-4a8f-A065-082708572369}" datafieldname="nst_zweck" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{5D6BE070-35E0-5E2F-B01F-49B3AC8EC307}" rowspan="4">
+                        <labels>
+                          <label description="Beschreibung" languagecode="1033" />
+                        </labels>
+                        <control id="nst_beschreibung" classid="{E0DECE4B-6FC8-4a8f-A065-082708572369}" datafieldname="nst_beschreibung" disabled="false" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+        <tab name="Einstufung" verticallayout="true" id="{6D5C86E6-9E0B-5408-9571-A629627B81C0}" expanded="true" showlabel="true">
+          <labels>
+            <label description="Einstufung" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section name="sec_1_0" showlabel="false" showbar="false" columns="1" id="{804F07C6-D4D8-589E-B420-F4E208BB691E}">
+                  <labels>
+                    <label description="Einstufung" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{0FE30A74-25E5-5516-BCC8-CF6F8745E086}">
+                        <labels>
+                          <label description="Risikoklasse" languagecode="1033" />
+                        </labels>
+                        <control id="nst_risikoklasse" classid="{3EF39988-22BB-4f0b-BBBE-64B5A3748AEE}" datafieldname="nst_risikoklasse" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{0A09E42E-3BA3-57B6-BF08-E22024682B03}">
+                        <labels>
+                          <label description="Anhang-III-Kategorie" languagecode="1033" />
+                        </labels>
+                        <control id="nst_anhang3kategorie" classid="{3EF39988-22BB-4f0b-BBBE-64B5A3748AEE}" datafieldname="nst_anhang3kategorie" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{5FB71E09-BB89-5748-9EBA-8183FCA85F28}">
+                        <labels>
+                          <label description="Transparenzpflicht (Art. 50)" languagecode="1033" />
+                        </labels>
+                        <control id="nst_transparenzpflicht" classid="{B0C6723A-8503-4fd7-BB28-C8A06AC933C2}" datafieldname="nst_transparenzpflicht" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{578143C6-0381-56D9-8EA5-BCA2ACBBF040}">
+                        <labels>
+                          <label description="Registrierung EU-Datenbank (Art. 49)" languagecode="1033" />
+                        </labels>
+                        <control id="nst_eudatenbank" classid="{B0C6723A-8503-4fd7-BB28-C8A06AC933C2}" datafieldname="nst_eudatenbank" disabled="false" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+                <section name="sec_1_1" showlabel="false" showbar="false" columns="1" id="{43D23449-BA8A-59AB-937A-0A743643AE6B}">
+                  <labels>
+                    <label description="Einstufung" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{0FD80B9B-37E1-59A1-961C-F398CD481343}">
+                        <labels>
+                          <label description="Inbetriebnahme" languagecode="1033" />
+                        </labels>
+                        <control id="nst_inbetriebnahme" classid="{5B773807-9FB2-42db-97C3-7A91EFF8ADFF}" datafieldname="nst_inbetriebnahme" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{588A6161-1E34-5D9D-B1EB-598572CFEC3A}">
+                        <labels>
+                          <label description="Letzte Prüfung" languagecode="1033" />
+                        </labels>
+                        <control id="nst_letztepruefung" classid="{5B773807-9FB2-42db-97C3-7A91EFF8ADFF}" datafieldname="nst_letztepruefung" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{CAE8FCBC-40DB-5B01-9BC1-2EC5903FD2FD}">
+                        <labels>
+                          <label description="Nächste Prüfung" languagecode="1033" />
+                        </labels>
+                        <control id="nst_naechstepruefung" classid="{5B773807-9FB2-42db-97C3-7A91EFF8ADFF}" datafieldname="nst_naechstepruefung" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{46D08C9C-2249-514F-8B37-F068F646EC3F}">
+                        <labels>
+                          <label description="Prüfung überfällig" languagecode="1033" />
+                        </labels>
+                        <control id="nst_pruefungueberfaellig" classid="{B0C6723A-8503-4fd7-BB28-C8A06AC933C2}" datafieldname="nst_pruefungueberfaellig" disabled="true" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+        <tab name="Daten und Betroffene" verticallayout="true" id="{8D89D3E8-1DBA-5EC4-B15F-315AAB09B7D5}" expanded="true" showlabel="true">
+          <labels>
+            <label description="Daten und Betroffene" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section name="sec_2_0" showlabel="false" showbar="false" columns="1" id="{ADFCD199-09E9-5113-9CA0-4C8BC51F097C}">
+                  <labels>
+                    <label description="Daten und Betroffene" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{388F659E-A843-5D2D-A03D-25BF7ADFC5F2}">
+                        <labels>
+                          <label description="Verarbeitete Datenarten" languagecode="1033" />
+                        </labels>
+                        <control id="nst_datenarten" classid="{4AA28AB7-9C13-4F57-A73D-AD894D048B5F}" datafieldname="nst_datenarten" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{20F04C26-BB9E-55A5-9C46-7300C93A91B9}">
+                        <labels>
+                          <label description="Dokumentation (Link)" languagecode="1033" />
+                        </labels>
+                        <control id="nst_dokumentation" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="nst_dokumentation" disabled="false" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+        <tab name="Verlauf" verticallayout="true" id="{E235BE39-34D8-5858-AABA-873D14696719}" expanded="true" showlabel="true">
+          <labels>
+            <label description="Verlauf" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section name="grid_3_0" showlabel="true" showbar="false" columns="1" id="{9432F064-4284-5BF5-8259-F807A5EB25BE}">
+                  <labels>
+                    <label description="Risikobewertungen" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{AD703292-EC09-59D0-B9D9-834E2D374E41}" rowspan="8" showlabel="true">
+                        <labels>
+                          <label description="Risikobewertungen" languagecode="1033" />
+                        </labels>
+                        <control id="grid_nst_risikobewertung_3_0" classid="{E7A81278-8635-4d9e-8D4D-59480B391C5B}">
+                          <parameters>
+                            <ViewId>{9298580B-91D0-F111-A05D-002248DB5F3F}</ViewId>
+                            <ViewIds>{9298580B-91D0-F111-A05D-002248DB5F3F}</ViewIds>
+                            <TargetEntityType>nst_risikobewertung</TargetEntityType>
+                            <RelationshipName>nst_kisystem_risikobewertung</RelationshipName>
+                            <EnableViewPicker>false</EnableViewPicker>
+                            <IsUserView>false</IsUserView>
+                            <AutoExpand>Fixed</AutoExpand>
+                            <RecordsPerPage>10</RecordsPerPage>
+                          </parameters>
+                        </control>
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+                <section name="grid_3_1" showlabel="true" showbar="false" columns="1" id="{70945D62-8C43-5617-BA61-07D2DA2AFF38}">
+                  <labels>
+                    <label description="Maßnahmen" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{78893EC0-0348-596A-AA5E-61BC0DF603FB}" rowspan="8" showlabel="true">
+                        <labels>
+                          <label description="Maßnahmen" languagecode="1033" />
+                        </labels>
+                        <control id="grid_nst_massnahme_3_1" classid="{E7A81278-8635-4d9e-8D4D-59480B391C5B}">
+                          <parameters>
+                            <ViewId>{8698580B-91D0-F111-A05D-002248DB5F3F}</ViewId>
+                            <ViewIds>{8698580B-91D0-F111-A05D-002248DB5F3F}</ViewIds>
+                            <TargetEntityType>nst_massnahme</TargetEntityType>
+                            <RelationshipName>nst_kisystem_massnahme</RelationshipName>
+                            <EnableViewPicker>false</EnableViewPicker>
+                            <IsUserView>false</IsUserView>
+                            <AutoExpand>Fixed</AutoExpand>
+                            <RecordsPerPage>10</RecordsPerPage>
+                          </parameters>
+                        </control>
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+        <tab name="Intern" verticallayout="true" id="{C8F83188-ECAC-5979-9422-1C93043A85D3}" expanded="true" showlabel="true">
+          <labels>
+            <label description="Intern" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section name="sec_4_0" showlabel="false" showbar="false" columns="1" id="{CC48DE54-1493-5273-A79B-9ED406904C46}">
+                  <labels>
+                    <label description="Intern" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{EEC8C96E-5568-5FC0-BF57-05C4290CEFFD}" rowspan="4">
+                        <labels>
+                          <label description="Interne Bewertung" languagecode="1033" />
+                        </labels>
+                        <control id="nst_internebewertung" classid="{E0DECE4B-6FC8-4a8f-A065-082708572369}" datafieldname="nst_internebewertung" disabled="false" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="KI-System Hauptformular" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="KI-System Hauptformular" languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

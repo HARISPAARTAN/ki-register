@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<AppModuleSiteMap xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SiteMapUniqueName>nst_kiregister_sitemap</SiteMapUniqueName>
+  <EnableCollapsibleGroups>False</EnableCollapsibleGroups>
+  <ShowHome>True</ShowHome>
+  <ShowPinned>True</ShowPinned>
+  <ShowRecents>True</ShowRecents>
+  <SiteMap IntroducedVersion="7.0.0.0">
+    <Area Id="area_register" Title="Register" ShowGroups="true">
+      <Group Id="grp_register" Title="Register">
+        <SubArea Id="sub_nst_kisystem" Entity="nst_kisystem" Title="KI-Systeme" />
+        <SubArea Id="sub_nst_anwendungsfall" Entity="nst_anwendungsfall" Title="Anwendungsfälle" />
+        <SubArea Id="sub_nst_risikobewertung" Entity="nst_risikobewertung" Title="Risikobewertungen" />
+        <SubArea Id="sub_nst_massnahme" Entity="nst_massnahme" Title="Maßnahmen" />
+      </Group>
+    </Area>
+    <Area Id="area_schulungen" Title="Schulungen" ShowGroups="true">
+      <Group Id="grp_schulungen" Title="Schulungen">
+        <SubArea Id="sub_nst_schulung" Entity="nst_schulung" Title="Schulungen" />
+        <SubArea Id="sub_nst_schulungsteilnahme" Entity="nst_schulungsteilnahme" Title="Teilnahmen" />
+      </Group>
+    </Area>
+    <Area Id="area_stammdaten" Title="Stammdaten" ShowGroups="true">
+      <Group Id="grp_stammdaten" Title="Stammdaten">
+        <SubArea Id="sub_nst_organisation" Entity="nst_organisation" Title="Organisationen" />
+        <SubArea Id="sub_nst_mitarbeiter" Entity="nst_mitarbeiter" Title="Mitarbeiter" />
+      </Group>
+    </Area>
+    <Area Id="area_uebersicht" Title="Übersicht" ShowGroups="true">
+      <Group Id="grp_uebersicht" Title="Übersicht">
+        <SubArea Id="sub_uebersicht_dash" DefaultDashboard="{995a285a-91d0-f111-a05d-002248db5f3f}" Url="/workplace/home_dashboards.aspx" Title="Übersicht" />
+      </Group>
+    </Area>
+  </SiteMap>
+  <LocalizedNames>
+    <LocalizedName description="KI-Register Sitemap" languagecode="1033" />
+  </LocalizedNames>
+</AppModuleSiteMap>

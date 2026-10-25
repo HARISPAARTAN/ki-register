@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{d44f9611-91d0-f111-a05d-002248db5f3f}</formid>
+    <IntroducedVersion>1.0.0.0</IntroducedVersion>
+    <FormPresentation>0</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab name="Allgemein" verticallayout="true" id="{96BEAE42-AE87-5EA9-AF01-079463CC26E9}" expanded="true" showlabel="true">
+          <labels>
+            <label description="Allgemein" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section name="sec_0_0" showlabel="false" showbar="false" columns="1" id="{5CBC60CE-FEB2-53E4-8E41-A6314CE55193}">
+                  <labels>
+                    <label description="Allgemein" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{959AECD7-7AAB-5BD7-8545-619953565AD7}">
+                        <labels>
+                          <label description="Name" languagecode="1033" />
+                        </labels>
+                        <control id="nst_name" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="nst_name" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{154B6278-B597-5F1E-B8F2-57EAEA97A189}">
+                        <labels>
+                          <label description="Organisation" languagecode="1033" />
+                        </labels>
+                        <control id="nst_organisation" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="nst_organisation" disabled="false" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+                <section name="sec_0_1" showlabel="false" showbar="false" columns="1" id="{6C0E2624-A64C-50FF-9F0F-96950F334176}">
+                  <labels>
+                    <label description="Allgemein" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{90F2308E-D37B-5686-924C-1B111C417E71}">
+                        <labels>
+                          <label description="Funktion" languagecode="1033" />
+                        </labels>
+                        <control id="nst_funktion" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="nst_funktion" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{30903452-DDB7-5875-B549-058587C4FCE1}">
+                        <labels>
+                          <label description="E-Mail" languagecode="1033" />
+                        </labels>
+                        <control id="nst_email" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="nst_email" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{2C57BADC-781D-5195-A748-4CC19D8D9AE1}">
+                        <labels>
+                          <label description="KI-verantwortlich" languagecode="1033" />
+                        </labels>
+                        <control id="nst_kiverantwortlich" classid="{B0C6723A-8503-4fd7-BB28-C8A06AC933C2}" datafieldname="nst_kiverantwortlich" disabled="false" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Mitarbeiter Hauptformular" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Mitarbeiter Hauptformular" languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

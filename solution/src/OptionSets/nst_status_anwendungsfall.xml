@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<optionset Name="nst_status_anwendungsfall" localizedName="Status Anwendungsfall" description="Status Anwendungsfall" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <OptionSetType>picklist</OptionSetType>
+  <IsGlobal>1</IsGlobal>
+  <IntroducedVersion>1.0.0.0</IntroducedVersion>
+  <IsCustomizable>1</IsCustomizable>
+  <displaynames>
+    <displayname description="Status Anwendungsfall" languagecode="1031" />
+    <displayname description="Status Anwendungsfall" languagecode="1033" />
+  </displaynames>
+  <Descriptions>
+    <Description description="Status Anwendungsfall" languagecode="1031" />
+    <Description description="Status Anwendungsfall" languagecode="1033" />
+  </Descriptions>
+  <options>
+    <option value="580000000" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Eingereicht" languagecode="1031" />
+        <label description="Eingereicht" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000001" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="In Prüfung" languagecode="1031" />
+        <label description="In Prüfung" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000002" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Genehmigt" languagecode="1031" />
+        <label description="Genehmigt" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000003" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Abgelehnt" languagecode="1031" />
+        <label description="Abgelehnt" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000004" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Zurückgezogen" languagecode="1031" />
+        <label description="Zurückgezogen" languagecode="1033" />
+      </labels>
+    </option>
+  </options>
+</optionset>

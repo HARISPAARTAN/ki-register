@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<visualization xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedqueryvisualizationid>{BEC4D73D-91D0-F111-A05D-002248DB5F3F}</savedqueryvisualizationid>
+  <datadescription>
+    <datadefinition>
+      <fetchcollection>
+        <fetch mapping="logical" aggregate="true">
+          <entity name="nst_anwendungsfall">
+            <attribute name="nst_anwendungsfallid" alias="count" aggregate="count" />
+            <attribute name="nst_status" groupby="true" alias="groupby_col" />
+          </entity>
+        </fetch>
+      </fetchcollection>
+      <categorycollection>
+        <category alias="groupby_col">
+          <measurecollection>
+            <measure alias="count" />
+          </measurecollection>
+        </category>
+      </categorycollection>
+    </datadefinition>
+  </datadescription>
+  <presentationdescription>
+    <Chart Palette="BrightPastel">
+      <Series>
+        <Series ChartType="Column" IsValueShownAsLabel="True" />
+      </Series>
+      <ChartAreas>
+        <ChartArea>
+          <AxisY LabelAutoFitMinFontSize="8">
+            <MajorGrid LineColor="246, 246, 246" />
+          </AxisY>
+          <AxisX LabelAutoFitMinFontSize="8" />
+        </ChartArea>
+      </ChartAreas>
+      <Titles>
+        <Title Text="Anwendungsfälle nach Status" Alignment="TopLeft" />
+      </Titles>
+      <Legends>
+        <Legend Enabled="False" />
+      </Legends>
+    </Chart>
+  </presentationdescription>
+  <isdefault>0</isdefault>
+  <LocalizedNames>
+    <LocalizedName description="Anwendungsfälle nach Status" languagecode="1033" />
+  </LocalizedNames>
+  <Descriptions>
+    <Description description="Anwendungsfälle nach Status" languagecode="1033" />
+  </Descriptions>
+  <IsCustomizable>1</IsCustomizable>
+  <IntroducedVersion>1.0.0.0</IntroducedVersion>
+  <CanBeDeleted>1</CanBeDeleted>
+</visualization>

@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<savedqueries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedquery>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <isquickfindquery>0</isquickfindquery>
+    <isprivate>0</isprivate>
+    <isdefault>0</isdefault>
+    <savedqueryid>{7d98580b-91d0-f111-a05d-002248db5f3f}</savedqueryid>
+    <layoutxml>
+      <grid name="resultset" jump="nst_name" select="1" icon="1" preview="1">
+        <row name="result" id="nst_kisystemid">
+          <cell name="nst_organisation" width="125" />
+          <cell name="nst_kennung" width="200" />
+          <cell name="nst_name" width="125" />
+          <cell name="nst_risikoklasse" width="125" />
+          <cell name="nst_status" width="125" />
+        </row>
+      </grid>
+    </layoutxml>
+    <querytype>0</querytype>
+    <fetchxml>
+      <fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false">
+        <entity name="nst_kisystem">
+          <attribute name="nst_kisystemid" />
+          <attribute name="nst_organisation" />
+          <attribute name="nst_kennung" />
+          <attribute name="nst_name" />
+          <attribute name="nst_risikoklasse" />
+          <attribute name="nst_status" />
+          <order attribute="nst_organisation" descending="false" />
+          <order attribute="nst_name" descending="false" />
+        </entity>
+      </fetch>
+    </fetchxml>
+    <IntroducedVersion>1.0.0.0</IntroducedVersion>
+    <LocalizedNames>
+      <LocalizedName description="Nach Organisation" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Nach Organisation" languagecode="1033" />
+    </Descriptions>
+  </savedquery>
+</savedqueries>

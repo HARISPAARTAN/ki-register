@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<optionset Name="nst_anhang3_kategorie" localizedName="Anhang-III-Kategorie" description="Anhang-III-Kategorie" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <OptionSetType>picklist</OptionSetType>
+  <IsGlobal>1</IsGlobal>
+  <IntroducedVersion>1.0.0.0</IntroducedVersion>
+  <IsCustomizable>1</IsCustomizable>
+  <displaynames>
+    <displayname description="Anhang-III-Kategorie" languagecode="1031" />
+    <displayname description="Anhang-III-Kategorie" languagecode="1033" />
+  </displaynames>
+  <Descriptions>
+    <Description description="Anhang-III-Kategorie" languagecode="1031" />
+    <Description description="Anhang-III-Kategorie" languagecode="1033" />
+  </Descriptions>
+  <options>
+    <option value="580000000" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Keine" languagecode="1031" />
+        <label description="Keine" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000001" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="1 Biometrie" languagecode="1031" />
+        <label description="1 Biometrie" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000002" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="2 Kritische Infrastruktur" languagecode="1031" />
+        <label description="2 Kritische Infrastruktur" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000003" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="3 Bildung" languagecode="1031" />
+        <label description="3 Bildung" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000004" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="4 Beschäftigung" languagecode="1031" />
+        <label description="4 Beschäftigung" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000005" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="5 Grundlegende Dienste" languagecode="1031" />
+        <label description="5 Grundlegende Dienste" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000006" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="6 Strafverfolgung" languagecode="1031" />
+        <label description="6 Strafverfolgung" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000007" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="7 Migration und Grenze" languagecode="1031" />
+        <label description="7 Migration und Grenze" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="580000008" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="8 Justiz und Demokratie" languagecode="1031" />
+        <label description="8 Justiz und Demokratie" languagecode="1033" />
+      </labels>
+    </option>
+  </options>
+</optionset>

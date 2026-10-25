@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{3c509611-91d0-f111-a05d-002248db5f3f}</formid>
+    <IntroducedVersion>1.0.0.0</IntroducedVersion>
+    <FormPresentation>0</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab name="Allgemein" verticallayout="true" id="{5B728DA1-C00F-5ADC-AA12-AEDE0A6FE449}" expanded="true" showlabel="true">
+          <labels>
+            <label description="Allgemein" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section name="sec_0_0" showlabel="false" showbar="false" columns="1" id="{9DF763CA-FE40-5F47-A7B2-60E38BC7F036}">
+                  <labels>
+                    <label description="Allgemein" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{0250B11A-A04A-5EA9-B108-674C64F4873E}">
+                        <labels>
+                          <label description="Name" languagecode="1033" />
+                        </labels>
+                        <control id="nst_name" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="nst_name" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{5A35B0E2-531F-5B0A-80BA-D4D654407BC3}">
+                        <labels>
+                          <label description="Organisation" languagecode="1033" />
+                        </labels>
+                        <control id="nst_organisation" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="nst_organisation" disabled="false" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+                <section name="sec_0_1" showlabel="false" showbar="false" columns="1" id="{E23155A7-F7D0-50FF-B0F4-3692E59F1A38}">
+                  <labels>
+                    <label description="Allgemein" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{1496F002-5ADF-5578-A8A9-EDD472ED8B28}">
+                        <labels>
+                          <label description="Datum" languagecode="1033" />
+                        </labels>
+                        <control id="nst_datum" classid="{5B773807-9FB2-42db-97C3-7A91EFF8ADFF}" datafieldname="nst_datum" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{71403CB0-E446-54AF-B426-39B52588C4C3}">
+                        <labels>
+                          <label description="Dauer (Minuten)" languagecode="1033" />
+                        </labels>
+                        <control id="nst_dauerminuten" classid="{C6D124CA-7EDA-4a60-AEA9-7FB8D318B68F}" datafieldname="nst_dauerminuten" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{262066CC-5228-5FE9-9C0E-09217027DB23}" rowspan="4">
+                        <labels>
+                          <label description="Inhalt" languagecode="1033" />
+                        </labels>
+                        <control id="nst_inhalt" classid="{E0DECE4B-6FC8-4a8f-A065-082708572369}" datafieldname="nst_inhalt" disabled="false" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{F3DEEE6D-CDEB-5B58-8F4C-72DEAB590903}">
+                        <labels>
+                          <label description="Zielgruppe" languagecode="1033" />
+                        </labels>
+                        <control id="nst_zielgruppe" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="nst_zielgruppe" disabled="false" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Schulung Hauptformular" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Schulung Hauptformular" languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>
