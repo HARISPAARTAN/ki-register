@@ -55,7 +55,7 @@ def test_each_readme_names_the_commands_the_workflows_the_secrets_and_the_deadli
     for role in ("nst KI-Governance", "nst Fachbereich", "nst Leser", "nst Datenbesitz"):
         assert role in readme
     assert "```mermaid\nflowchart LR" in readme
-    assert "apply --only security" in readme and "import-dev.yml" in readme and "force-overwrite" in readme
+    assert "apply --only security" in readme and "apply --only auditing" in readme and "import-dev.yml" in readme and "force-overwrite" in readme
     assert "festgelegt" in readme or "pinned to a commit SHA" in readme  # third-party actions are pinned to commit SHAs (T8-D1)
     assert "gepinnt" not in readme
 
@@ -104,7 +104,7 @@ def test_the_changelog_keeps_the_v0_1_0_section_and_has_a_dated_section_for_the_
     version = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
     assert version in {v for v, _ in headings}, f"CHANGELOG hat keinen Abschnitt v{version}"
     assert re.search(rf"^## v0\.1\.0 \({ISO_DATE}\) Meilenstein 1 Registerkern$", changelog, re.M)
-    for n in range(1, 9):
+    for n in range(1, 10):
         assert re.search(rf"^{n}\. \*\*", changelog, re.M), n
 
 
@@ -121,6 +121,43 @@ def test_the_rebuild_guide_follows_the_manual_order_and_leaves_room_for_mileston
         assert definition in guide
     assert "abgeleitet und noch nicht auf einer frischen Umgebung durchgespielt" in guide
     assert guide.index("kiregister apply --env dev --only security") > guide.index("gh workflow run import-dev.yml")  # import first (T8-D4)
+
+
+def _text(*parts):
+    return ROOT.joinpath(*parts).read_text(encoding="utf-8")
+
+
+def _rebuild_order(readme):
+    """The first code span of every step in the numbered rebuild list of a README."""
+    block = re.search(r"^1\. .*?(?:\n\n|\Z)", readme, re.M | re.S).group(0)
+    return [re.search(r"`([^`]+)`", step).group(1) for step in re.findall(r"^\d+\. (.+)$", block, re.M)]
+
+
+def test_apply_only_auditing_has_its_place_in_every_listing_of_the_rebuild_order():
+    """bootstrap, import, apply --only security, apply --only auditing, seed, verify: in both READMEs (same steps), the guide, ADR-002, CHANGELOG."""
+    assert _rebuild_order(README_DE) == _rebuild_order(README_EN) == [
+        "bootstrap", "gh workflow run import-dev.yml", "apply --only security", "apply --only auditing", "seed", "verify"]
+    sequence = "`apply --only security`, `apply --only auditing`, `seed`, `verify`"
+    for text in (README_DE, README_EN, _text("docs", "decisions", "ADR-002-code-first-provisionierung.md"), _text("docs", "CHANGELOG.md")):
+        assert sequence in text
+    guide = _text("docs", "nachbau-anleitung.md")
+    commands = ["kiregister apply --env dev --only security", "kiregister apply --env dev --only auditing", "kiregister seed --env dev",
+                "kiregister verify --env dev"]
+    positions = [guide.index(command) for command in commands]
+    assert positions == sorted(positions)
+
+
+AUDIT_DOCUMENTS = [("README.md",), ("README.en.md",), ("docs", "CHANGELOG.md"), ("docs", "nachbau-anleitung.md"),
+                   ("docs", "decisions", "ADR-001-dataverse-statt-sharepoint.md"), ("docs", "decisions", "ADR-002-code-first-provisionierung.md"),
+                   ("docs", "decisions", "ADR-003-alm-ohne-pipelines.md")]
+
+
+@pytest.mark.parametrize("parts", AUDIT_DOCUMENTS, ids=lambda parts: parts[-1])
+def test_the_documents_say_that_apply_only_auditing_switched_environment_auditing_on_and_when(parts):
+    text = _text(*parts)
+    assert "--only auditing" in text and "2026-10-26" in text
+    for stale in ("setzt der Code nicht", "does not switch on auditing", "nicht im Code"):  # wording from before the switch became code
+        assert stale not in text, stale
 
 
 @pytest.mark.parametrize("path", MARKDOWN, ids=lambda p: p.name)

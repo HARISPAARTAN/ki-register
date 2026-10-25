@@ -129,7 +129,7 @@ Alle Tabellen sind benutzer- oder teameigen (`ownerid`); so bilden Unternehmense
 
 ## Tabellen
 
-| Tabelle | Anzeigename | Mehrzahl | Primärspalte | Prüfprotokoll (Audit) | Notizen |
+| Tabelle | Anzeigename | Mehrzahl | Primärspalte | Audit-Flag der Tabelle | Notizen |
 | --- | --- | --- | --- | --- | --- |
 | `nst_organisation` | Organisation | Organisationen | `nst_name` | nein | nein |
 | `nst_mitarbeiter` | Mitarbeiter | Mitarbeiter | `nst_name` | nein | nein |

@@ -70,7 +70,8 @@ def test_relationships_match_definitions(client, defs):
 
 
 def test_choice_labels_exist_in_the_base_language(client, defs):
-    # the org base language is 1033 only: Dataverse accepts the 1031 twin but stores no label for a language that is not provisioned
+    # the org base language is 1033 only: Dataverse accepts the 1031 twin, but the Web API does not return it here; the exported solution
+    # carries the 1031 labels of tables, columns and choices (ADR-002), so the 1033 label is what this test can check
     for c in defs.choices:
         data = client.get(f"GlobalOptionSetDefinitions(Name='{c.schema}')")
         for o, expected in zip(data["Options"], c.values, strict=True):

@@ -88,8 +88,12 @@ def test_columns_say_what_they_use():
 
 
 def test_tables_relationships_and_choices_are_listed_below_the_diagram():
+    # the column is the flag of the table (IsAuditEnabled), not a log: Dataverse writes records only while the environment switch is on too
+    assert "| Tabelle | Anzeigename | Mehrzahl | Primärspalte | Audit-Flag der Tabelle | Notizen |" in BELOW
+    assert "Prüfprotokoll" not in TEXT
     for t in DEFS.tables:
-        assert f"| `{t.schema}` | {t.display} | {t.plural} | `{t.primary.schema}` |" in BELOW, t.schema
+        audit, notes = ("ja" if t.audit else "nein"), ("ja" if t.notes else "nein")
+        assert f"| `{t.schema}` | {t.display} | {t.plural} | `{t.primary.schema}` | {audit} | {notes} |" in BELOW, t.schema
     for rel in DEFS.relationships:
         assert f"| `{rel.schema}` | `{rel.referenced}` | `{rel.referencing}` | `{rel.lookup.logical}` ({rel.lookup.display}) |" in BELOW, rel.schema
     for c in DEFS.choices:

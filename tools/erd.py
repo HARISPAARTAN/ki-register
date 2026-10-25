@@ -77,7 +77,7 @@ def _row(*cells: str) -> str:
 
 def render(defs: Definitions, option_prefix: int = 58000) -> str:
     diagram = ["erDiagram", *[entity_block(t, defs) for t in defs.tables], *[relationship_line(r) for r in defs.relationships]]
-    tables = [_row("Tabelle", "Anzeigename", "Mehrzahl", "Primärspalte", "Prüfprotokoll (Audit)", "Notizen"), _row(*["---"] * 6)]
+    tables = [_row("Tabelle", "Anzeigename", "Mehrzahl", "Primärspalte", "Audit-Flag der Tabelle", "Notizen"), _row(*["---"] * 6)]
     tables += [_row(f"`{t.schema}`", t.display, t.plural, f"`{t.primary.schema}`", "ja" if t.audit else "nein", "ja" if t.notes else "nein")
                for t in defs.tables]
     rels = [_row("Beziehung", "Eltern (1)", "Kind (n)", "Nachschlagefeld", "Pflicht", "Beim Löschen des Elternsatzes"), _row(*["---"] * 6)]

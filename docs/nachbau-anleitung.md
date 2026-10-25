@@ -19,15 +19,17 @@ Voraussetzungen: eine Umgebung mit Dataverse-Datenbank (Region Europa, Währung 
 | 1 | `uv run --env-file .env kiregister bootstrap --env dev` | legt den Anwendungsbenutzer des Dienstprinzipals mit der Rolle System Administrator an |
 | 2 | `gh workflow run import-dev.yml` (Actions, „Lösung nach Dev importieren“), der einzige Importweg: Der Runner packt `solution/src` und importiert nach Dev; das Geheimnis `DATAVERSE_URL_DEV` zeigt dabei auf die Umgebung, die neu aufgebaut wird. `pac` läuft nur auf GitHub-Runnern, nie auf dem Arbeitsrechner (ADR-003); das Repository enthält nur die entpackte Quelle, kein Archiv | bringt Herausgeber, Lösung, Auswahlfelder, Tabellen, Spalten, Beziehungen, Rollen, Spaltensicherheitsprofil, Ansichten, Formulare, Diagramme, Dashboard, Sitemap und die App samt Tabellenkomponenten und Rollen |
 | 3 | `uv run --env-file .env kiregister apply --env dev --only security` | legt Unternehmenseinheiten und Besitzerteams an (nicht Teil der Lösung) und prüft Rollen und Profil |
-| 4 | `uv run --env-file .env kiregister seed --env dev` | lädt das fiktive Register |
-| 5 | `uv run --env-file .env kiregister verify --env dev` | prüft alles; Exit-Code 1 bei Abweichung |
+| 4 | `uv run --env-file .env kiregister apply --env dev --only auditing` | schaltet das Auditing der Umgebung ein (die Organisationseinstellung `isauditenabled`, nicht Teil der Lösung); liest zuerst und ändert nichts, wenn der Schalter schon an ist |
+| 5 | `uv run --env-file .env kiregister seed --env dev` | lädt das fiktive Register |
+| 6 | `uv run --env-file .env kiregister verify --env dev` | prüft alles, auch den Schalter für das Auditing; Exit-Code 1 bei Abweichung |
 
 Wichtig:
 
 - **Kein volles `apply` vor dem Import.** `apply` ohne `--only` ist der Weg der Code-first-Entwicklung (so ist Dev entstanden). Neben einem Import würde es voraussichtlich Ansichten und Formulare doppelt anlegen, weil deren IDs je Umgebung verschieden sind.
 - **Der Import vor `verify`.** `AddAppComponents` kann die Tabellen nicht zu App-Komponenten machen (ADR-002); das leistet der Lösungsimport, und `verify` verlangt es.
 - **Hat die Umgebung Änderungen, die noch nicht im Repository stehen,** läuft vorher `export-solution.yml`: `import-dev.yml` überschreibt mit `force-overwrite`.
-- Nach dem Import, vor den Benutzerzuweisungen, stehen noch die Portalschritte aus Teil B, Schritte 7 und 15 an (Rollen und Profil den Benutzern zuweisen, Auditing der Umgebung einschalten).
+- **Test** erhält die Lösung über `deploy-test.yml`. Von den Befehlen läuft dort nur `kiregister apply --env test --only auditing` (Schritt 4), weil es allein die Organisationseinstellung berührt; `verify` verlangt den Schalter auch in Test, eine frische Testumgebung braucht ihn also vor dem Lauf von `deploy-test.yml` (ADR-003).
+- Nach dem Import, vor den Benutzerzuweisungen, steht noch der Portalschritt aus Teil B, Schritt 7 an (Rollen und Profil den Benutzern zuweisen). Das Auditing der Umgebung setzt Schritt 4.
 
 ## Teil B: Von Hand im Maker-Portal
 
@@ -49,7 +51,7 @@ Reihenfolge, Portalpfad und Definitionsdatei auf einen Blick:
 | 12 | App, Sitemap und Rollen der App | Lösung, Neu, App, Modellgesteuerte App | `app.toml` (`app`, `area`, `roles`) |
 | 13 | Seed-Import | Tabelle, Daten importieren, oder `kiregister seed` | `data/seed/*.csv` |
 | 14 | Export | Lösung, Lösung exportieren, oder `export-solution.yml` | `solution/src` |
-| 15 | Auditing der Umgebung und Prüfung | Admin Center, Audit und Protokolle; `kiregister verify` | `tables.toml` (`audit`) |
+| 15 | Auditing der Umgebung und Prüfung | Admin Center, Audit und Protokolle, oder `kiregister apply --only auditing`; `kiregister verify` | `tables.toml` (`audit`) |
 
 Alles, was in die Lösung gehört, wird **in der Lösung** angelegt (Lösung öffnen, Neu) oder ihr danach mit „Vorhandene hinzufügen“ zugefügt; sonst fehlt es im Export. Die Lösung als „Bevorzugte Lösung“ festzulegen, spart das.
 
@@ -172,7 +174,7 @@ Portal: Lösung, Version prüfen (Eigenschaften), Lösung exportieren (verwaltet
 
 ### Schritt 15: Auditing der Umgebung und Prüfung
 
-Portal: Admin Center, Umgebungen, Umgebung, Einstellungen, Audit und Protokolle, Audit-Einstellungen (Aufbewahrungsdauer wählen), Globale Audit-Einstellungen, Auditing starten. Der Schalter der Umgebung ist nicht Teil der Lösung und nicht im Code; in Dev stand er am 2026-10-25 auf „aus“ (ADR-002). Die Tabellen KI-System, Risikobewertung und Anwendungsfall tragen den Schalter schon (`IsAuditEnabled`, Schritt 3); erst mit dem Schalter der Umgebung schreibt Dataverse ein Protokoll. Danach: `uv run --env-file .env kiregister verify --env dev` (bei einem Nachbau ohne Seed mit `KIREGISTER_VERIFY_NO_SEED=1`).
+Portal: Admin Center, Umgebungen, Umgebung, Einstellungen, Audit und Protokolle, Audit-Einstellungen (Aufbewahrungsdauer wählen), Globale Audit-Einstellungen, Auditing starten. Der Code-Weg ersetzt das durch `uv run --env-file .env kiregister apply --env dev --only auditing` (Teil A, Schritt 4; für Test mit `--env test`). Der Schalter der Umgebung (`isauditenabled` der Organisation) ist nicht Teil der Lösung; er ist in Dev und Test seit 2026-10-26 eingeschaltet (ADR-002). Die Tabellen KI-System, Risikobewertung und Anwendungsfall tragen den Audit-Flag schon (`IsAuditEnabled`, Schritt 3); erst mit dem Schalter der Umgebung schreibt Dataverse ein Protokoll. Danach: `uv run --env-file .env kiregister verify --env dev` (bei einem Nachbau ohne Seed mit `KIREGISTER_VERIFY_NO_SEED=1`; auch dann wird der Schalter geprüft).
 
 ## Meilenstein 2: Erfassung und Genehmigung
 

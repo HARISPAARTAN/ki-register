@@ -18,11 +18,16 @@ Das Register ist in Nordstern Dev provisioniert, mit dem fiktiven Register gefü
    - Die Lösungsversion 1.1.0.0 steht in `config.toml`; `apply` setzt sie in der Lösung.
    - `verify` prüft, dass die Tabellen Komponenten der App sind, auch für Test.
    - Nachbesserungen am ALM nach der Prüfung von Aufgabe 7: alle Aktionen von Dritten auf Commit-SHAs festgelegt, `dependabot.yml`, Geheimnisse des Integrationsjobs nur im Testschritt, `persist-credentials: false` im Export.
+9. **Auditing der Umgebung und Korrektur der Rollensuche (Aufgabe 9).**
+   - `kiregister apply --only auditing` (`src/kiregister/auditing.py`) schaltet das Auditing der Umgebung ein: Es liest die Organisationszeile und setzt `isauditenabled` nur, wenn der Schalter aus ist, ohne Lösungsheader (eine Organisationseinstellung ist keine Lösungskomponente). Das volle `apply` ruft es als letzten Schritt auf. Am 2026-10-26 in Dev und Test eingeschaltet; es ist die einzige `apply`-Variante gegen Test (ADR-003). In der Reihenfolge für einen Wiederaufbau steht es nach `apply --only security`.
+   - `verify` meldet in beiden Modi „Umgebungs-Auditing ist ausgeschaltet (organizations.isauditenabled)“, wenn der Schalter aus ist. Der Integrationstest prüft den Schalter und den Audit-Flag der Tabellen gegen Dev.
+   - Korrektur in `bootstrap`: Die Suche nach der Rolle System Administrator filterte mit `roletemplateid eq <GUID>`, was die Web API mit 400 (0x80060888) ablehnt, sodass der Rückfall über den Namen nie erreicht wurde. Der Filter lautet `_roletemplateid_value eq <GUID>` (gegen Dev bestätigt, nur lesend).
+   - Das ERD nennt die Spalte „Prüfprotokoll (Audit)“ jetzt „Audit-Flag der Tabelle“.
 
 ### Bekannte Grenzen
 
-- Das Auditing der Umgebung stand in Dev am 2026-10-25 auf „aus“ (Portalschritt, ADR-002); die Tabellen KI-System, Risikobewertung und Anwendungsfall sind bereits für das Auditing markiert (`IsAuditEnabled`), Dataverse schreibt aber erst ein Protokoll, wenn auch der Schalter der Umgebung eingeschaltet ist.
+- Das Auditing der Umgebung ist seit 2026-10-26 in Dev und Test eingeschaltet (`kiregister apply --only auditing`, ADR-002), und die Tabellen KI-System, Risikobewertung und Anwendungsfall tragen den Audit-Flag (`IsAuditEnabled`). Änderungen davor sind nicht protokolliert (in Dev stand der Schalter am 2026-10-25 auf „aus“). Gezeigt ist bisher nur der Protokolleintrag zum Einschalten selbst (Aktion „Audit Change at Org Level“ an der Organisation); ein Eintrag zur Änderung eines Datensatzes der drei Tabellen ist noch nicht gezeigt.
 - Rollen und Spaltensicherheitsprofil sind noch keinem Benutzer zugewiesen (ein Profil gilt für Benutzer und Teams, nicht für Rollen) und es gibt keinen Demo-Benutzer; das Öffnen der App mit nur einer `nst`-Rolle (voraussichtlich braucht ein Benutzer zusätzlich `Basic User` oder `App Opener`), die Sichtbarkeit der Datensätze je Einheit und die Maskierung der gesicherten Spalte sind nicht gezeigt.
-- Die Reihenfolge für einen Wiederaufbau (Bootstrap, Import, `apply --only security`, `seed`, `verify`) ist abgeleitet und nicht auf einer frischen Umgebung erprobt.
+- Die Reihenfolge für einen Wiederaufbau (Bootstrap, Import, `apply --only security`, `apply --only auditing`, `seed`, `verify`) ist abgeleitet und nicht auf einer frischen Umgebung erprobt.
 - Test enthält nur die verwaltete Lösung, keine Unternehmenseinheiten, Besitzerteams oder Seed-Daten.
 - Dev und Test werden ab 2026-12-15 ausgesetzt und ab 2027-01-15 gelöscht, wenn sie nicht zu verwalteten Umgebungen werden (ADR-003). Screenshots und Video vor dem 2026-12-15 aufnehmen.

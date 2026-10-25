@@ -36,7 +36,7 @@ flowchart LR
     devsol -->|"export-solution.yml"| src
     src -->|"import-dev.yml"| devsol
     src -->|"deploy-test.yml (Tag v*)"| testsol
-    pkg -->|"verify (Lösungskomponenten)"| testsol
+    pkg -->|"auditing, verify (Lösungskomponenten)"| testsol
     wf -.-> sp
     sp -.-> devsol
     sp -.-> testsol
@@ -62,9 +62,9 @@ Aufruf: `uv run --env-file .env kiregister <Befehl> --env dev` (oder `--env test
 | Befehl | Wirkung |
 |---|---|
 | `bootstrap` | legt den Anwendungsbenutzer des Dienstprinzipals mit der Rolle System Administrator an (einmal je Umgebung, mit der Azure-CLI-Sitzung der Eigentümerin oder des Eigentümers nach `az login`) |
-| `apply [--only metadata\|security\|app]` | legt an oder aktualisiert, löscht nie. `metadata`: Herausgeber, Lösung (setzt deren Version), Auswahlfelder, Tabellen, Spalten, Beziehungen. `security`: Unternehmenseinheiten, je Einheit ein mitgliederloses Besitzerteam, vier Rollen mit Privilegien, Spaltensicherheitsprofil. `app`: Ansichten, Formulare, Diagramme, Dashboard, Sitemap, die App `KI-Register` und die Rollen, die sie öffnen dürfen. Ein zweiter Lauf ändert nichts |
+| `apply [--only metadata\|security\|app\|auditing]` | legt an oder aktualisiert, löscht nie. `metadata`: Herausgeber, Lösung (setzt deren Version), Auswahlfelder, Tabellen, Spalten, Beziehungen. `security`: Unternehmenseinheiten, je Einheit ein mitgliederloses Besitzerteam, vier Rollen mit Privilegien, Spaltensicherheitsprofil. `app`: Ansichten, Formulare, Diagramme, Dashboard, Sitemap, die App `KI-Register` und die Rollen, die sie öffnen dürfen. `auditing`: schaltet das Auditing der Umgebung ein (die Organisationseinstellung `isauditenabled`, keine Lösungskomponente); das volle `apply` tut das als letzten Schritt, und `apply --only auditing` ist die einzige Variante, die gegen Test läuft. Ein zweiter Lauf ändert nichts |
 | `seed [--stichtag YYYY-MM-DD]` | lädt das fiktive Register mit festen GUIDs. Alle Datumswerte sind relativ zum Stichtag (Standard: heute, UTC) und werden um ganze Wochen verschoben, damit „überfällig“ wahr bleibt. Legt keine Einheiten oder Teams an: vorher `apply --only security` |
-| `verify` | prüft Tabellen, Spalten, Nachschlagefelder, Auswahlfelder, Beziehungen, Rollen, das Spaltensicherheitsprofil, das App-Modul samt Tabellenkomponenten, Unternehmenseinheiten, Besitzerteams (leer; die Rolle `nst Datenbesitz` darf keinem Benutzer gehören) und die Seed-Anzahlen; Exit-Code 1 bei Abweichung. Mit `KIREGISTER_VERIFY_NO_SEED=1` nur die Lösungskomponenten: so prüft `deploy-test.yml` die Testumgebung |
+| `verify` | prüft Tabellen, Spalten, Nachschlagefelder, Auswahlfelder, Beziehungen, Rollen, das Spaltensicherheitsprofil, das App-Modul samt Tabellenkomponenten, den Schalter für das Auditing der Umgebung, Unternehmenseinheiten, Besitzerteams (leer; die Rolle `nst Datenbesitz` darf keinem Benutzer gehören) und die Seed-Anzahlen; Exit-Code 1 bei Abweichung. Mit `KIREGISTER_VERIFY_NO_SEED=1` nur die Lösungskomponenten und den Schalter für das Auditing: so prüft `deploy-test.yml` die Testumgebung |
 
 ## Eine Umgebung aufbauen
 
@@ -75,14 +75,15 @@ Voraussetzungen: eine Umgebung mit Dataverse-Datenbank, `az login`, die App-Regi
 1. `bootstrap`: Anwendungsbenutzer anlegen.
 2. **Lösung aus dem Quelltext importieren** (`gh workflow run import-dev.yml`, der einzige Importweg; [Wiederaufbau-Anleitung](docs/nachbau-anleitung.md)). Der Import bringt Tabellen, Spalten, Beziehungen, Rollen, Spaltensicherheitsprofil, Ansichten, Formulare, Diagramme, Dashboard, Sitemap und die App samt Tabellenkomponenten und Rollen mit.
 3. `apply --only security`: Unternehmenseinheiten und Besitzerteams (sie gehören nicht zur Lösung).
-4. `seed`.
-5. `verify`.
+4. `apply --only auditing`: das Auditing der Umgebung einschalten (eine Organisationseinstellung, auch sie gehört nicht zur Lösung).
+5. `seed`.
+6. `verify`.
 
-Das volle `apply` (Metadaten, Sicherheit, App) vor dem Import ist der Weg der Code-first-Entwicklung: So ist Dev entstanden, danach kam einmal der Import, der die Tabellen zu Komponenten der App macht (`AddAppComponents` kann das auf dieser Umgebung nicht, ADR-002). Neben einem Import würde ein volles `apply` voraussichtlich Ansichten und Formulare doppelt anlegen, weil deren IDs je Umgebung verschieden sind.
+Das volle `apply` (Metadaten, Sicherheit, App, Auditing) vor dem Import ist der Weg der Code-first-Entwicklung: So ist Dev entstanden, danach kam einmal der Import, der die Tabellen zu Komponenten der App macht (`AddAppComponents` kann das auf dieser Umgebung nicht, ADR-002). Neben einem Import würde ein volles `apply` voraussichtlich Ansichten und Formulare doppelt anlegen, weil deren IDs je Umgebung verschieden sind.
 
 Der Import ist auch Voraussetzung der Prüfungen, die die Tabellenkomponenten der App verlangen: `verify` und `tests/integration/test_app.py`. Hat Dev Änderungen, die noch nicht im Repository stehen, läuft vorher `export-solution.yml` (der Import überschreibt, `force-overwrite`).
 
-Den Schalter für das Auditing der Umgebung setzt der Code nicht (Admin Center, Einstellungen, Audit und Protokolle). Die Tabellen KI-System, Risikobewertung und Anwendungsfall sind bereits für das Auditing markiert (`IsAuditEnabled`); Dataverse schreibt aber erst ein Protokoll, wenn auch der Schalter der Umgebung eingeschaltet ist, und der stand in Dev am 2026-10-25 auf „aus“ (ADR-002).
+Das Auditing der Umgebung ist seit 2026-10-26 in Dev und Test eingeschaltet, mit `kiregister apply --only auditing` (die Organisationseinstellung `isauditenabled`; sie gehört nicht zur Lösung, ADR-002, ADR-003). Die Tabellen KI-System, Risikobewertung und Anwendungsfall tragen den Audit-Flag (`IsAuditEnabled`); Dataverse schreibt ein Protokoll nur, solange auch der Schalter der Umgebung an ist.
 
 ## ALM: Workflows und Geheimnisse
 
@@ -95,7 +96,7 @@ Den Schalter für das Auditing der Umgebung setzt der Code nicht (Admin Center, 
 | `import-dev.yml` | von Hand | packt `solution/src` als unmanaged und importiert nach Dev. Läuft mit `force-overwrite`: Hat Dev Änderungen, die noch nicht im Repository stehen, zuerst `export-solution.yml` ausführen |
 | `deploy-test.yml` | Tag `v*` oder von Hand | packt `solution/src` als managed, importiert nach Test und führt `kiregister verify --env test` mit `KIREGISTER_VERIFY_NO_SEED=1` aus |
 
-Test erhält nur die Lösung: Unternehmenseinheiten, Besitzerteams und Seed-Daten sind keine Lösungskomponenten. Einen Workflow startet man über Actions, „Run workflow“, oder mit `gh workflow run <Datei>`; Tags setzt der Mensch.
+Test erhält nur die Lösung: Unternehmenseinheiten, Besitzerteams und Seed-Daten sind keine Lösungskomponenten. Die einzige Ausnahme ist der Schalter für das Auditing der Umgebung, den `apply --env test --only auditing` setzt (es berührt nur die Organisationseinstellung, ADR-003); `verify` verlangt ihn auch in Test. Einen Workflow startet man über Actions, „Run workflow“, oder mit `gh workflow run <Datei>`; Tags setzt der Mensch.
 
 Die fünf Geheimnisse trägt die Eigentümerin in die Repository-Einstellungen ein (Settings, Secrets and variables, Actions) und, für den lokalen Betrieb, in die `.env`:
 
@@ -114,7 +115,7 @@ Drei Unternehmenseinheiten (Kinder der Wurzel) sind die Zugriffsgrenzen: `Nordst
 | Rolle | Zugriff |
 |---|---|
 | `nst KI-Governance` | Anlegen, Lesen, Schreiben, Löschen, Anfügen, Anfügen an, Zuweisen und Teilen auf allen `nst_`-Tabellen für die ganze Organisation; Lesen von Benutzer, Team und Unternehmenseinheit; für sie ist das Spaltensicherheitsprofil `nst KI-Governance Felder` vorgesehen (gesicherte Spalte: interne Bewertung eines KI-Systems); ein Profil gilt für Benutzer und Teams, nicht für Rollen, und ist noch niemandem zugewiesen (Portalschritt, ADR-002) |
-| `nst Fachbereich` | Lesen auf Einheitsebene: KI-System, Maßnahme, Schulung, Schulungsteilnahme, Mitarbeiter, Organisation; Anwendungsfall: Anlegen, Lesen, Schreiben, Anfügen nur für eigene Datensätze; keine Risikobewertung. Die gesäten Anwendungsfälle gehören dem Besitzerteam und sind für diese Rolle unsichtbar |
+| `nst Fachbereich` | Lesen auf Einheitsebene: KI-System, Maßnahme, Schulung, Schulungsteilnahme, Mitarbeiter, Organisation; Anwendungsfall: Anlegen, Lesen, Schreiben, Anfügen nur für eigene Datensätze; keine Risikobewertung. Die gesäten Anwendungsfälle gehören dem Besitzerteam und sind für diese Rolle unsichtbar (aus den Plattformregeln abgeleitet, noch nicht mit einem Demo-Benutzer gezeigt) |
 | `nst Leser` | Lesen auf Einheitsebene auf allen `nst_`-Tabellen außer Risikobewertung; keine gesicherte Spalte |
 | `nst Datenbesitz` | nur Lesen, nur für die Besitzerteams; wird nie einem Benutzer zugewiesen, `verify` meldet jede Zuweisung |
 
@@ -179,7 +180,7 @@ Die Aufnahmen stehen noch aus. **Alle Screenshots und das Video vor dem 2026-12-
 
 Nordstern Dev und Nordstern Test sind kostenlose Entwicklerumgebungen aus dem Developer Plan. Microsoft stellt unverwaltete Entwicklerumgebungen ein: keine neuen ab 2026-11-15, **Aussetzung ab 2026-12-15, Löschung ab 2027-01-15**, es sei denn, die Umgebungen werden zu verwalteten Umgebungen. Das setzt Premium-Lizenzen voraus, die für dieses Projekt nicht vorgesehen sind. Belege (Microsoft Learn) und die Annahme zum Umgebungstyp, der nicht im Admin Center nachgelesen wurde: [ADR-003](docs/decisions/ADR-003-alm-ohne-pipelines.md). Alle Meilensteine enden deshalb vor dem 2026-12-10, und alles Wiederherstellbare liegt im Repository.
 
-**Nachbau in einer Testumgebung** (Standard-Testumgebung mit 30 Tagen, laut Microsoft Learn weiterhin verfügbar): dieselbe Reihenfolge wie oben, mit `DATAVERSE_URL_DEV` auf die neue Umgebung. `bootstrap`, Import, `apply --only security`, `seed`, `verify`; die Schritte stehen in der [Wiederaufbau-Anleitung](docs/nachbau-anleitung.md). Diese Reihenfolge ist abgeleitet und noch nicht auf einer frischen Umgebung erprobt.
+**Nachbau in einer Testumgebung** (Standard-Testumgebung mit 30 Tagen, laut Microsoft Learn weiterhin verfügbar): dieselbe Reihenfolge wie oben, mit `DATAVERSE_URL_DEV` auf die neue Umgebung. `bootstrap`, Import, `apply --only security`, `apply --only auditing`, `seed`, `verify`; die Schritte stehen in der [Wiederaufbau-Anleitung](docs/nachbau-anleitung.md). Diese Reihenfolge ist abgeleitet und noch nicht auf einer frischen Umgebung erprobt.
 
 ## Tests
 

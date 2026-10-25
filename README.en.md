@@ -36,7 +36,7 @@ flowchart LR
     devsol -->|"export-solution.yml"| src
     src -->|"import-dev.yml"| devsol
     src -->|"deploy-test.yml (tag v*)"| testsol
-    pkg -->|"verify (solution components)"| testsol
+    pkg -->|"auditing, verify (solution components)"| testsol
     wf -.-> sp
     sp -.-> devsol
     sp -.-> testsol
@@ -62,9 +62,9 @@ Run as `uv run --env-file .env kiregister <command> --env dev` (or `--env test`)
 | Command | Effect |
 |---|---|
 | `bootstrap` | creates the application user of the service principal with the System Administrator role (once per environment, using the owner's Azure CLI session after `az login`) |
-| `apply [--only metadata\|security\|app]` | creates or updates, never deletes. `metadata`: publisher, solution (sets its version), choices, tables, columns, relationships. `security`: business units, one member-less owner team per unit, four roles with privileges, the column security profile. `app`: views, forms, charts, dashboard, site map, the app `KI-Register` and the roles that may open it. A second run changes nothing |
+| `apply [--only metadata\|security\|app\|auditing]` | creates or updates, never deletes. `metadata`: publisher, solution (sets its version), choices, tables, columns, relationships. `security`: business units, one member-less owner team per unit, four roles with privileges, the column security profile. `app`: views, forms, charts, dashboard, site map, the app `KI-Register` and the roles that may open it. `auditing`: switches on auditing for the environment (the organization setting `isauditenabled`, not a solution component); a full `apply` does that as its last step, and `apply --only auditing` is the only variant that is run against Test. A second run changes nothing |
 | `seed [--stichtag YYYY-MM-DD]` | loads the fictional register with fixed GUIDs. All dates are relative to the reference date (default: today, UTC) and shifted by whole weeks so that "overdue" stays true. Creates no units or teams: run `apply --only security` first |
-| `verify` | checks tables, columns, lookups, choices, relationships, roles, the column security profile, the app module with its table components, business units, owner teams (they must be empty and the role `nst Datenbesitz` must not belong to a user) and the seed counts; exit code 1 on any deviation. With `KIREGISTER_VERIFY_NO_SEED=1` it checks solution components only, which is how `deploy-test.yml` checks the test environment |
+| `verify` | checks tables, columns, lookups, choices, relationships, roles, the column security profile, the app module with its table components, the auditing switch of the environment, business units, owner teams (they must be empty and the role `nst Datenbesitz` must not belong to a user) and the seed counts; exit code 1 on any deviation. With `KIREGISTER_VERIFY_NO_SEED=1` it checks the solution components and the auditing switch only, which is how `deploy-test.yml` checks the test environment |
 
 ## Building an environment
 
@@ -75,14 +75,15 @@ Prerequisites: an environment with a Dataverse database, `az login`, the app reg
 1. `bootstrap`: create the application user.
 2. **Import the solution from the source** (`gh workflow run import-dev.yml`, the only import path; [rebuild guide](docs/nachbau-anleitung.md), German). The import brings tables, columns, relationships, roles, the column security profile, views, forms, charts, dashboard, site map and the app together with its table components and roles.
 3. `apply --only security`: business units and owner teams (they are not part of the solution).
-4. `seed`.
-5. `verify`.
+4. `apply --only auditing`: switch on auditing for the environment (an organization setting, which is not part of the solution either).
+5. `seed`.
+6. `verify`.
 
-A full `apply` (metadata, security, app) before the import is the code-first development path: that is how Dev came about, followed by one import that makes the tables components of the app (`AddAppComponents` cannot do that on this environment, ADR-002). Next to an import, a full `apply` would probably create views and forms twice, because their IDs differ per environment.
+A full `apply` (metadata, security, app, auditing) before the import is the code-first development path: that is how Dev came about, followed by one import that makes the tables components of the app (`AddAppComponents` cannot do that on this environment, ADR-002). Next to an import, a full `apply` would probably create views and forms twice, because their IDs differ per environment.
 
 The import is also a precondition of the checks that require the table components of the app: `verify` and `tests/integration/test_app.py`. If Dev holds changes that are not in the repository yet, run `export-solution.yml` first (the import overwrites, `force-overwrite`).
 
-The code does not switch on auditing for the environment itself (admin center, settings, audit and logs). The tables KI-System, Risikobewertung and Anwendungsfall are already marked for auditing (`IsAuditEnabled`); Dataverse writes no audit record, however, until the environment switch is on as well, and in Dev it was off on 2026-10-25 (ADR-002).
+Auditing for the environment has been switched on in Dev and Test since 2026-10-26, with `kiregister apply --only auditing` (the organization setting `isauditenabled`; it is not part of the solution, ADR-002, ADR-003). The tables KI-System, Risikobewertung and Anwendungsfall carry the audit flag (`IsAuditEnabled`); Dataverse writes audit records only while the environment switch is on as well.
 
 ## ALM: workflows and secrets
 
@@ -95,7 +96,7 @@ The code does not switch on auditing for the environment itself (admin center, s
 | `import-dev.yml` | manual | packs `solution/src` as unmanaged and imports it into Dev. Runs with `force-overwrite`: if Dev holds changes that are not in the repository yet, run `export-solution.yml` first |
 | `deploy-test.yml` | tag `v*` or manual | packs `solution/src` as managed, imports it into Test and runs `kiregister verify --env test` with `KIREGISTER_VERIFY_NO_SEED=1` |
 
-Test receives the solution only: business units, owner teams and seed data are not solution components. A workflow starts from Actions, "Run workflow", or with `gh workflow run <file>`; a human pushes tags.
+Test receives the solution only: business units, owner teams and seed data are not solution components. The one exception is the auditing switch of the environment, which `apply --env test --only auditing` sets (it touches only the organization setting, ADR-003); `verify` requires it in Test as well. A workflow starts from Actions, "Run workflow", or with `gh workflow run <file>`; a human pushes tags.
 
 The owner enters the five secrets in the repository settings (Settings, Secrets and variables, Actions) and, for local use, in the `.env`:
 
@@ -114,7 +115,7 @@ Three business units (children of the root) are the access boundaries: `Nordster
 | Role | Access |
 |---|---|
 | `nst KI-Governance` | create, read, write, delete, append, append to, assign and share on all `nst_` tables for the whole organisation; read on user, team and business unit; the column security profile `nst KI-Governance Felder` is meant for it (secured column: the internal assessment of an AI system); a profile applies to users and teams, not to roles, and is not yet assigned to anyone (portal step, ADR-002) |
-| `nst Fachbereich` | read at unit level: KI-System, Maßnahme, Schulung, Schulungsteilnahme, Mitarbeiter, Organisation; Anwendungsfall: create, read, write, append for own records only; no Risikobewertung. The seeded Anwendungsfälle belong to the owner team and are invisible to this role |
+| `nst Fachbereich` | read at unit level: KI-System, Maßnahme, Schulung, Schulungsteilnahme, Mitarbeiter, Organisation; Anwendungsfall: create, read, write, append for own records only; no Risikobewertung. The seeded Anwendungsfälle belong to the owner team and are invisible to this role (derived from the platform rules, not yet shown with a demo user) |
 | `nst Leser` | read at unit level on all `nst_` tables except Risikobewertung; no secured column |
 | `nst Datenbesitz` | read only, for the owner teams only; never assigned to a user, `verify` reports any assignment |
 
@@ -179,7 +180,7 @@ The screenshots are still to be taken. **Take all screenshots and the video befo
 
 Nordstern Dev and Nordstern Test are free developer environments from the Developer Plan. Microsoft is retiring unmanaged developer environments: no new ones from 2026-11-15, **suspension from 2026-12-15, deletion from 2027-01-15**, unless the environments become managed environments. That requires premium licences, which this project does not plan for. Sources (Microsoft Learn) and the assumption about the environment type, which was not read from the admin center: [ADR-003](docs/decisions/ADR-003-alm-ohne-pipelines.md). All milestones therefore end before 2026-12-10, and everything that can be rebuilt is in the repository.
 
-**Rebuild in a trial environment** (a standard trial environment with 30 days, still available according to Microsoft Learn): the same order as above, with `DATAVERSE_URL_DEV` pointing at the new environment: `bootstrap`, import, `apply --only security`, `seed`, `verify`; the steps are in the [rebuild guide](docs/nachbau-anleitung.md) (German). This order is derived and has not yet been exercised on a fresh environment.
+**Rebuild in a trial environment** (a standard trial environment with 30 days, still available according to Microsoft Learn): the same order as above, with `DATAVERSE_URL_DEV` pointing at the new environment: `bootstrap`, import, `apply --only security`, `apply --only auditing`, `seed`, `verify`; the steps are in the [rebuild guide](docs/nachbau-anleitung.md) (German). This order is derived and has not yet been exercised on a fresh environment.
 
 ## Tests
 
