@@ -17,7 +17,7 @@ Voraussetzungen: eine Umgebung mit Dataverse-Datenbank (Region Europa, Währung 
 | Schritt | Befehl oder Weg | Wirkung |
 |---|---|---|
 | 1 | `uv run --env-file .env kiregister bootstrap --env dev` | legt den Anwendungsbenutzer des Dienstprinzipals mit der Rolle System Administrator an |
-| 2 | `gh workflow run import-dev.yml` (Actions, „Lösung nach Dev importieren“) oder Portal-Import eines Archivs, das aus `solution/src` gepackt wurde (`pac solution pack --zipfile NordsternKIRegister.zip --folder solution/src --packagetype Unmanaged`, mit installiertem Power Platform CLI auf dem Rechner der Eigentümerin; das Repository enthält nur die entpackte Quelle, kein Archiv) | bringt Herausgeber, Lösung, Auswahlfelder, Tabellen, Spalten, Beziehungen, Rollen, Spaltensicherheitsprofil, Ansichten, Formulare, Diagramme, Dashboard, Sitemap und die App samt Tabellenkomponenten und Rollen |
+| 2 | `gh workflow run import-dev.yml` (Actions, „Lösung nach Dev importieren“), der einzige Importweg: Der Runner packt `solution/src` und importiert nach Dev; das Geheimnis `DATAVERSE_URL_DEV` zeigt dabei auf die Umgebung, die neu aufgebaut wird. `pac` läuft nur auf GitHub-Runnern, nie auf dem Arbeitsrechner (ADR-003); das Repository enthält nur die entpackte Quelle, kein Archiv | bringt Herausgeber, Lösung, Auswahlfelder, Tabellen, Spalten, Beziehungen, Rollen, Spaltensicherheitsprofil, Ansichten, Formulare, Diagramme, Dashboard, Sitemap und die App samt Tabellenkomponenten und Rollen |
 | 3 | `uv run --env-file .env kiregister apply --env dev --only security` | legt Unternehmenseinheiten und Besitzerteams an (nicht Teil der Lösung) und prüft Rollen und Profil |
 | 4 | `uv run --env-file .env kiregister seed --env dev` | lädt das fiktive Register |
 | 5 | `uv run --env-file .env kiregister verify --env dev` | prüft alles; Exit-Code 1 bei Abweichung |
@@ -168,11 +168,11 @@ Wer die Daten im Portal üben möchte (Tabelle, Daten importieren, Excel oder CS
 
 ### Schritt 14: Export
 
-Portal: Lösung, Version prüfen (Eigenschaften), Lösung exportieren (verwaltet und unverwaltet). Im Repository: `gh workflow run export-solution.yml`, der Workflow öffnet einen Pull Request mit `solution/src`. Der Diff darf nur Dateien unter `solution/src` enthalten, keine Archive, keine Geheimnisse (ADR-003). Manuell entpackt man mit `pac solution unpack --zipfile ... --folder solution/src --packagetype Both`.
+Portal: Lösung, Version prüfen (Eigenschaften), Lösung exportieren (verwaltet und unverwaltet). Im Repository: `gh workflow run export-solution.yml`, der Workflow öffnet einen Pull Request mit `solution/src`. Der Diff darf nur Dateien unter `solution/src` enthalten, keine Archive, keine Geheimnisse (ADR-003). Ein im Portal exportiertes Archiv wird nicht von Hand entpackt: Entpackt wird nur auf dem Runner (`export-solution.yml`, ADR-003).
 
 ### Schritt 15: Auditing der Umgebung und Prüfung
 
-Portal: Admin Center, Umgebungen, Umgebung, Einstellungen, Audit und Protokolle, Audit-Einstellungen (Aufbewahrungsdauer wählen), Globale Audit-Einstellungen, Auditing starten. Der Schalter der Umgebung ist nicht Teil der Lösung und nicht im Code; in Dev stand er am 2026-10-25 auf „aus“ (ADR-002). Erst mit ihm schreiben die Tabellen KI-System, Risikobewertung und Anwendungsfall ein Protokoll. Danach: `uv run --env-file .env kiregister verify --env dev` (bei einem Nachbau ohne Seed mit `KIREGISTER_VERIFY_NO_SEED=1`).
+Portal: Admin Center, Umgebungen, Umgebung, Einstellungen, Audit und Protokolle, Audit-Einstellungen (Aufbewahrungsdauer wählen), Globale Audit-Einstellungen, Auditing starten. Der Schalter der Umgebung ist nicht Teil der Lösung und nicht im Code; in Dev stand er am 2026-10-25 auf „aus“ (ADR-002). Die Tabellen KI-System, Risikobewertung und Anwendungsfall tragen den Schalter schon (`IsAuditEnabled`, Schritt 3); erst mit dem Schalter der Umgebung schreibt Dataverse ein Protokoll. Danach: `uv run --env-file .env kiregister verify --env dev` (bei einem Nachbau ohne Seed mit `KIREGISTER_VERIFY_NO_SEED=1`).
 
 ## Meilenstein 2: Erfassung und Genehmigung
 

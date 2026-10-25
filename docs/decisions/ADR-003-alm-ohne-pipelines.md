@@ -2,6 +2,7 @@
 
 - Datum: 2026-10-25
 - Status: angenommen
+- Hinweis: Alle Daten sind erfunden; keine Rechtsberatung.
 
 ## Kontext
 
@@ -41,7 +42,7 @@ Entwicklerumgebungen, die verwaltete Umgebungen sind, sind nicht betroffen. Der 
 
 ## Folgen
 
-- **Die Fristen bleiben bestehen.** Dev und Test werden ab 2026-12-15 ausgesetzt und ab 2027-01-15 gelöscht. Alle Meilensteine enden deshalb vor 2026-12-10 (Entwurf, Abschnitt 2); der Wiederaufbau läuft aus dem Repository (`provision/`, `data/seed/`, `solution/src`) in einer Standard-Testumgebung (30 Tage; laut Seite „Developer Plan“ bleibt dieser Typ verfügbar) oder in einer verwalteten Entwicklerumgebung, falls die Lizenzfrage bis dahin anders liegt. Der Ablauf kommt in den Wiederaufbau-Leitfaden (Meilenstein 4).
+- **Die Fristen bleiben bestehen.** Dev und Test werden ab 2026-12-15 ausgesetzt und ab 2027-01-15 gelöscht. Alle Meilensteine enden deshalb vor 2026-12-10 (Entwurf, Abschnitt 2); der Wiederaufbau läuft aus dem Repository (`provision/`, `data/seed/`, `solution/src`) in einer Standard-Testumgebung (30 Tage; laut Seite „Developer Plan“ bleibt dieser Typ verfügbar) oder in einer verwalteten Entwicklerumgebung, falls die Lizenzfrage bis dahin anders liegt. Der Ablauf steht in `docs/nachbau-anleitung.md`; Meilenstein 4 spielt ihn auf einer frischen Umgebung durch.
 - **Die Quelle ist ein Artefakt, nicht die Wahrheit.** Die Wahrheit sind die TOML-Definitionen (ADR-002); `solution/src` ist der Export daraus plus die Ergänzungen, die sich nur über den Lösungsimport setzen lassen. Jede Handänderung an `solution/src` läuft über `import-dev.yml` und einen erneuten Export, damit Quelle und Dev nicht auseinanderlaufen.
 - **Export-Pull-Requests lösen kein CI aus.** Pull Requests, die ein Workflow mit dem Token von Actions anlegt, lösen `pull_request`-Läufe aus, die eine Freigabe verlangen („This workflow run required approval but was not approved before it expired“) und beim Zusammenführen als roter Lauf ohne Jobs enden; so geschehen bei den Pull Requests 1 und 2. Deshalb ignoriert `ci.yml` bei `pull_request` Änderungen unter `solution/**` (`paths-ignore`); Ruff und die Unit-Tests prüfen XML ohnehin nicht. Der Diff wird von Hand geprüft: nur Dateien unter `solution/src`, keine Archive, keine Geheimnisse. **Der Filter hat beim ersten Export danach gehalten**: Die Diagnose stammt aus Lauf 40226895832 (Pull Requests 1 und 2). Seit dem Filter (Commit 764b55e) hat der Export 3 (Lauf 40233273083, Pull Request 5 mit nur drei Dateien unter `solution/`) keinen Lauf ausgelöst; der Pull Request zeigt keine Prüfungen. Mit einer Stichprobe von einem Export ist das ein Indiz, kein Beweis. Erscheint bei einem späteren Export dennoch ein Lauf, den Filter wieder entfernen und die Freigabe des Laufs auf seiner Seite von Hand erteilen.
 - **Dependabot schlägt Hauptversionssprünge vor.** Gleich nach dem Anlegen der Konfiguration hat Dependabot zwei Pull Requests geöffnet: `actions/checkout` von 5.1.0 auf 7.0.1 (Pull Request 4) und `astral-sh/setup-uv` von 7.6.0 auf 10.3.2 (Pull Request 3). Ein Sprung der Hauptversion ändert, was mit den Geheimnissen läuft; er wird einzeln geprüft und nicht pauschal zusammengeführt.

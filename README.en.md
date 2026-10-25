@@ -68,12 +68,12 @@ Run as `uv run --env-file .env kiregister <command> --env dev` (or `--env test`)
 
 ## Building an environment
 
-Prerequisites: an environment with a Dataverse database, `az login`, the app registration (`bash tools/setup_app_registration.sh` prints tenant ID, client ID and the secret once) and the five secrets in the `.env` and in GitHub (see ALM).
+Prerequisites: an environment with a Dataverse database, `az login`, the app registration (`bash tools/setup_app_registration.sh` prints tenant ID and client ID, and the secret once, only for a new registration or with `RESET_SECRET=1`, which replaces all existing secrets of the app) and the five secrets in the `.env` and in GitHub (see ALM).
 
 **Order for a fresh environment** (derived from the design, not yet exercised on a fresh environment):
 
 1. `bootstrap`: create the application user.
-2. **Import the solution from the source** (`gh workflow run import-dev.yml` or in the portal, [rebuild guide](docs/nachbau-anleitung.md), German). The import brings tables, columns, relationships, roles, the column security profile, views, forms, charts, dashboard, site map and the app together with its table components and roles.
+2. **Import the solution from the source** (`gh workflow run import-dev.yml`, the only import path; [rebuild guide](docs/nachbau-anleitung.md), German). The import brings tables, columns, relationships, roles, the column security profile, views, forms, charts, dashboard, site map and the app together with its table components and roles.
 3. `apply --only security`: business units and owner teams (they are not part of the solution).
 4. `seed`.
 5. `verify`.
@@ -82,7 +82,7 @@ A full `apply` (metadata, security, app) before the import is the code-first dev
 
 The import is also a precondition of the checks that require the table components of the app: `verify` and `tests/integration/test_app.py`. If Dev holds changes that are not in the repository yet, run `export-solution.yml` first (the import overwrites, `force-overwrite`).
 
-The code does not switch on auditing for the environment itself (admin center, settings, audit and logs); the tables KI-System, Risikobewertung and Anwendungsfall already carry the audit flag (ADR-002).
+The code does not switch on auditing for the environment itself (admin center, settings, audit and logs). The tables KI-System, Risikobewertung and Anwendungsfall are already marked for auditing (`IsAuditEnabled`); Dataverse writes no audit record, however, until the environment switch is on as well, and in Dev it was off on 2026-10-25 (ADR-002).
 
 ## ALM: workflows and secrets
 
@@ -109,16 +109,16 @@ The owner enters the five secrets in the repository settings (Settings, Secrets 
 
 ## Role model
 
-Three business units (children of the root) are the access boundaries: `Nordstern Projektmanagement`, `Nordstern Energie`, `Nordstern Klinikum`. All tables are user- or team-owned. The records of a subsidiary belong to its member-less owner team `<unit> Datenbesitz`, and the role `nst Datenbesitz` (read only) gives that team the read privilege it needs; a user with a unit-level role therefore sees only the records of their own unit (ADR-002).
+Three business units (children of the root) are the access boundaries: `Nordstern Projektmanagement`, `Nordstern Energie`, `Nordstern Klinikum`. All tables are user- or team-owned. The records of a subsidiary belong to its member-less owner team `<unit> Datenbesitz`, and the role `nst Datenbesitz` (read only) gives that team the read privilege it needs; a user with a unit-level role therefore sees only the records of their own unit (ADR-002; not yet shown with a demo user).
 
 | Role | Access |
 |---|---|
-| `nst KI-Governance` | create, read, write, delete, append, append to, assign and share on all `nst_` tables for the whole organisation; read on user, team and business unit; the only role in the column security profile `nst KI-Governance Felder` (secured column: the internal assessment of an AI system) |
+| `nst KI-Governance` | create, read, write, delete, append, append to, assign and share on all `nst_` tables for the whole organisation; read on user, team and business unit; the column security profile `nst KI-Governance Felder` is meant for it (secured column: the internal assessment of an AI system); a profile applies to users and teams, not to roles, and is not yet assigned to anyone (portal step, ADR-002) |
 | `nst Fachbereich` | read at unit level: KI-System, Maßnahme, Schulung, Schulungsteilnahme, Mitarbeiter, Organisation; Anwendungsfall: create, read, write, append for own records only; no Risikobewertung. The seeded Anwendungsfälle belong to the owner team and are invisible to this role |
 | `nst Leser` | read at unit level on all `nst_` tables except Risikobewertung; no secured column |
 | `nst Datenbesitz` | read only, for the owner teams only; never assigned to a user, `verify` reports any assignment |
 
-The three user roles may open the app `KI-Register` (`provision/definitions/app.toml`), `nst Datenbesitz` may not. Assigning roles and the profile to users is a portal step (ADR-002); column security does not apply to system administrators, so only an account without that role shows the masked display (ADR-001).
+The app `KI-Register` is mapped to the three user roles (`provision/definitions/app.toml`), not to `nst Datenbesitz`; opening it with only an `nst` role has not been shown, and such a user will probably also need `Basic User` or `App Opener` (ADR-002). Assigning roles and the profile to users is a portal step (ADR-002); column security does not apply to system administrators, so only an account without that role shows the masked display (ADR-001).
 
 ## The register
 
@@ -183,7 +183,7 @@ Nordstern Dev and Nordstern Test are free developer environments from the Develo
 
 ## Tests
 
-- Unit tests run offline (HTTP mocked with `respx`): `uv run pytest tests/unit -q`, plus `uv run ruff check .`. Both run in `ci.yml` on every push to `main` and on pull requests.
+- Unit tests run offline (HTTP mocked with `respx`): `uv run pytest tests/unit -q`, plus `uv run ruff check .`. Both run in `ci.yml` on every push to `main` and on pull requests that do not only change `solution/**`.
 - Integration tests (marker `dataverse`) run against Nordstern Dev and skip themselves without `DATAVERSE_URL_DEV`: `uv run --env-file .env pytest tests/integration -m dataverse -v`. They need the solution import (see above).
 - `docs/erd.md` is written by `tools/erd.py` (`uv run python tools/erd.py`); a unit test fails if the file differs from what the definitions produce.
 

@@ -68,12 +68,12 @@ Aufruf: `uv run --env-file .env kiregister <Befehl> --env dev` (oder `--env test
 
 ## Eine Umgebung aufbauen
 
-Voraussetzungen: eine Umgebung mit Dataverse-Datenbank, `az login`, die App-Registrierung (`bash tools/setup_app_registration.sh` gibt Mandanten-ID, Client-ID und das Geheimnis einmalig aus) und die fünf Geheimnisse in der `.env` und in GitHub (siehe ALM).
+Voraussetzungen: eine Umgebung mit Dataverse-Datenbank, `az login`, die App-Registrierung (`bash tools/setup_app_registration.sh` gibt Mandanten-ID und Client-ID aus, das Geheimnis einmalig und nur bei einer neuen Registrierung oder mit `RESET_SECRET=1`, was alle vorhandenen Geheimnisse der App ersetzt) und die fünf Geheimnisse in der `.env` und in GitHub (siehe ALM).
 
 **Reihenfolge für eine frische Umgebung** (aus dem Entwurf abgeleitet, auf einer frischen Umgebung noch nicht durchgespielt):
 
 1. `bootstrap`: Anwendungsbenutzer anlegen.
-2. **Lösung aus dem Quelltext importieren** (`gh workflow run import-dev.yml` oder im Portal, [Wiederaufbau-Anleitung](docs/nachbau-anleitung.md)). Der Import bringt Tabellen, Spalten, Beziehungen, Rollen, Spaltensicherheitsprofil, Ansichten, Formulare, Diagramme, Dashboard, Sitemap und die App samt Tabellenkomponenten und Rollen mit.
+2. **Lösung aus dem Quelltext importieren** (`gh workflow run import-dev.yml`, der einzige Importweg; [Wiederaufbau-Anleitung](docs/nachbau-anleitung.md)). Der Import bringt Tabellen, Spalten, Beziehungen, Rollen, Spaltensicherheitsprofil, Ansichten, Formulare, Diagramme, Dashboard, Sitemap und die App samt Tabellenkomponenten und Rollen mit.
 3. `apply --only security`: Unternehmenseinheiten und Besitzerteams (sie gehören nicht zur Lösung).
 4. `seed`.
 5. `verify`.
@@ -82,7 +82,7 @@ Das volle `apply` (Metadaten, Sicherheit, App) vor dem Import ist der Weg der Co
 
 Der Import ist auch Voraussetzung der Prüfungen, die die Tabellenkomponenten der App verlangen: `verify` und `tests/integration/test_app.py`. Hat Dev Änderungen, die noch nicht im Repository stehen, läuft vorher `export-solution.yml` (der Import überschreibt, `force-overwrite`).
 
-Den Schalter für das Auditing der Umgebung setzt der Code nicht (Admin Center, Einstellungen, Audit und Protokolle); die Tabellen KI-System, Risikobewertung und Anwendungsfall tragen das Prüfprotokoll bereits (ADR-002).
+Den Schalter für das Auditing der Umgebung setzt der Code nicht (Admin Center, Einstellungen, Audit und Protokolle). Die Tabellen KI-System, Risikobewertung und Anwendungsfall sind bereits für das Auditing markiert (`IsAuditEnabled`); Dataverse schreibt aber erst ein Protokoll, wenn auch der Schalter der Umgebung eingeschaltet ist, und der stand in Dev am 2026-10-25 auf „aus“ (ADR-002).
 
 ## ALM: Workflows und Geheimnisse
 
@@ -109,16 +109,16 @@ Die fünf Geheimnisse trägt die Eigentümerin in die Repository-Einstellungen e
 
 ## Rollenmodell
 
-Drei Unternehmenseinheiten (Kinder der Wurzel) sind die Zugriffsgrenzen: `Nordstern Projektmanagement`, `Nordstern Energie`, `Nordstern Klinikum`. Alle Tabellen sind benutzer- oder teameigen. Die Datensätze einer Gesellschaft gehören dem mitgliederlosen Besitzerteam `<Einheit> Datenbesitz`, dem die Rolle `nst Datenbesitz` (nur Lesen) die nötige Leseberechtigung gibt; so sieht ein Benutzer mit Rolle auf Einheitsebene nur die Datensätze der eigenen Einheit (ADR-002).
+Drei Unternehmenseinheiten (Kinder der Wurzel) sind die Zugriffsgrenzen: `Nordstern Projektmanagement`, `Nordstern Energie`, `Nordstern Klinikum`. Alle Tabellen sind benutzer- oder teameigen. Die Datensätze einer Gesellschaft gehören dem mitgliederlosen Besitzerteam `<Einheit> Datenbesitz`, dem die Rolle `nst Datenbesitz` (nur Lesen) die nötige Leseberechtigung gibt; so sieht ein Benutzer mit Rolle auf Einheitsebene nur die Datensätze der eigenen Einheit (ADR-002; noch nicht mit einem Demo-Benutzer gezeigt).
 
 | Rolle | Zugriff |
 |---|---|
-| `nst KI-Governance` | Anlegen, Lesen, Schreiben, Löschen, Anfügen, Anfügen an, Zuweisen und Teilen auf allen `nst_`-Tabellen für die ganze Organisation; Lesen von Benutzer, Team und Unternehmenseinheit; als einzige Rolle im Spaltensicherheitsprofil `nst KI-Governance Felder` (gesicherte Spalte: interne Bewertung eines KI-Systems) |
+| `nst KI-Governance` | Anlegen, Lesen, Schreiben, Löschen, Anfügen, Anfügen an, Zuweisen und Teilen auf allen `nst_`-Tabellen für die ganze Organisation; Lesen von Benutzer, Team und Unternehmenseinheit; für sie ist das Spaltensicherheitsprofil `nst KI-Governance Felder` vorgesehen (gesicherte Spalte: interne Bewertung eines KI-Systems); ein Profil gilt für Benutzer und Teams, nicht für Rollen, und ist noch niemandem zugewiesen (Portalschritt, ADR-002) |
 | `nst Fachbereich` | Lesen auf Einheitsebene: KI-System, Maßnahme, Schulung, Schulungsteilnahme, Mitarbeiter, Organisation; Anwendungsfall: Anlegen, Lesen, Schreiben, Anfügen nur für eigene Datensätze; keine Risikobewertung. Die gesäten Anwendungsfälle gehören dem Besitzerteam und sind für diese Rolle unsichtbar |
 | `nst Leser` | Lesen auf Einheitsebene auf allen `nst_`-Tabellen außer Risikobewertung; keine gesicherte Spalte |
 | `nst Datenbesitz` | nur Lesen, nur für die Besitzerteams; wird nie einem Benutzer zugewiesen, `verify` meldet jede Zuweisung |
 
-Die App `KI-Register` dürfen die drei Benutzerrollen öffnen (`provision/definitions/app.toml`), nicht `nst Datenbesitz`. Die Zuweisung von Rollen und Profil an Benutzer ist ein Portalschritt (ADR-002); die Spaltensicherheit gilt nicht für Systemadministratoren, die maskierte Darstellung zeigt also nur ein Konto ohne diese Rolle (ADR-001).
+Die App `KI-Register` ist den drei Benutzerrollen zugeordnet (`provision/definitions/app.toml`), nicht `nst Datenbesitz`; das Öffnen mit nur einer `nst`-Rolle ist nicht gezeigt, voraussichtlich braucht ein Benutzer zusätzlich `Basic User` oder `App Opener` (ADR-002). Die Zuweisung von Rollen und Profil an Benutzer ist ein Portalschritt (ADR-002); die Spaltensicherheit gilt nicht für Systemadministratoren, die maskierte Darstellung zeigt also nur ein Konto ohne diese Rolle (ADR-001).
 
 ## Das Register
 
@@ -183,7 +183,7 @@ Nordstern Dev und Nordstern Test sind kostenlose Entwicklerumgebungen aus dem De
 
 ## Tests
 
-- Unit-Tests laufen offline (HTTP mit `respx` nachgebildet): `uv run pytest tests/unit -q`; dazu `uv run ruff check .`. Beides läuft in `ci.yml` bei jedem Push auf `main` und bei Pull Requests.
+- Unit-Tests laufen offline (HTTP mit `respx` nachgebildet): `uv run pytest tests/unit -q`; dazu `uv run ruff check .`. Beides läuft in `ci.yml` bei jedem Push auf `main` und bei Pull Requests, die nicht nur `solution/**` ändern.
 - Integrationstests (Marker `dataverse`) laufen gegen Nordstern Dev und überspringen sich ohne `DATAVERSE_URL_DEV`: `uv run --env-file .env pytest tests/integration -m dataverse -v`. Voraussetzung ist der Lösungsimport (siehe oben).
 - `docs/erd.md` wird von `tools/erd.py` erzeugt (`uv run python tools/erd.py`); ein Unit-Test schlägt fehl, wenn die Datei vom Stand der Definitionen abweicht.
 

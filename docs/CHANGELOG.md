@@ -14,15 +14,15 @@ Das Register ist in Nordstern Dev provisioniert, mit dem fiktiven Register gefü
 6. **Seed und Prüfung (Aufgabe 6).** Das fiktive Register: drei Gesellschaften, 21 Mitarbeitende, 20 KI-Systeme (5 Hoch, 1 Unannehmbar, 3 Begrenzt, 11 Minimal), 27 Risikobewertungen, 42 Maßnahmen, 9 Schulungen, 51 Teilnahmen, 7 Anwendungsfälle. Feste GUIDs, mitgliederlose Besitzerteams `<Einheit> Datenbesitz` mit der Rolle `nst Datenbesitz`, Datumswerte relativ zum Stichtag (`--stichtag`), Rechtsstand Verordnung (EU) 2024/1689 in der Fassung der Verordnung (EU) 2026/1744. `kiregister seed` und `kiregister verify` (Exit-Code 1 bei Abweichung).
 7. **ALM (Aufgabe 7).** Die Workflows `ci.yml`, `export-solution.yml`, `import-dev.yml` und `deploy-test.yml`; die Lösungsquelle `solution/src` (erster Export der Version 1.0.0.0, Tabellenkomponenten der App über den Import); `verify` im Modus nur für Lösungskomponenten für Test; ADR-003 zu den Fristen der Entwicklerumgebungen und zur Entscheidung gegen Pipelines und Git-Integration.
 8. **Dokumentation und Abschluss (Aufgabe 8).** ERD mit Erzeuger (`tools/erd.py`, `docs/erd.md`), ADR-001 (Dataverse statt SharePoint-Listen), ADR-002 aktualisiert, ADR-003 ergänzt, README auf Deutsch und Englisch, Wiederaufbau-Anleitung als Skelett, dieses Protokoll.
-   - Die drei Benutzerrollen dürfen die App öffnen (`appmoduleroles_association`, im Export enthalten).
+   - Die App ist den drei Benutzerrollen zugeordnet (`appmoduleroles_association`, im Export enthalten); das Öffnen mit nur einer dieser Rollen ist nicht gezeigt.
    - Die Lösungsversion 1.1.0.0 steht in `config.toml`; `apply` setzt sie in der Lösung.
    - `verify` prüft, dass die Tabellen Komponenten der App sind, auch für Test.
    - Nachbesserungen am ALM nach der Prüfung von Aufgabe 7: alle Aktionen von Dritten auf Commit-SHAs festgelegt, `dependabot.yml`, Geheimnisse des Integrationsjobs nur im Testschritt, `persist-credentials: false` im Export.
 
 ### Bekannte Grenzen
 
-- Das Auditing der Umgebung ist in Dev ausgeschaltet (Portalschritt, ADR-002); die Tabellen tragen das Prüfprotokoll bereits.
-- Rollen und Spaltensicherheitsprofil sind noch keinem Benutzer zugewiesen und es gibt keinen Demo-Benutzer; das Öffnen der App mit nur einer `nst`-Rolle und die Maskierung der gesicherten Spalte sind nicht gezeigt.
+- Das Auditing der Umgebung stand in Dev am 2026-10-25 auf „aus“ (Portalschritt, ADR-002); die Tabellen KI-System, Risikobewertung und Anwendungsfall sind bereits für das Auditing markiert (`IsAuditEnabled`), Dataverse schreibt aber erst ein Protokoll, wenn auch der Schalter der Umgebung eingeschaltet ist.
+- Rollen und Spaltensicherheitsprofil sind noch keinem Benutzer zugewiesen (ein Profil gilt für Benutzer und Teams, nicht für Rollen) und es gibt keinen Demo-Benutzer; das Öffnen der App mit nur einer `nst`-Rolle (voraussichtlich braucht ein Benutzer zusätzlich `Basic User` oder `App Opener`), die Sichtbarkeit der Datensätze je Einheit und die Maskierung der gesicherten Spalte sind nicht gezeigt.
 - Die Reihenfolge für einen Wiederaufbau (Bootstrap, Import, `apply --only security`, `seed`, `verify`) ist abgeleitet und nicht auf einer frischen Umgebung erprobt.
 - Test enthält nur die verwaltete Lösung, keine Unternehmenseinheiten, Besitzerteams oder Seed-Daten.
 - Dev und Test werden ab 2026-12-15 ausgesetzt und ab 2027-01-15 gelöscht, wenn sie nicht zu verwalteten Umgebungen werden (ADR-003). Screenshots und Video vor dem 2026-12-15 aufnehmen.
