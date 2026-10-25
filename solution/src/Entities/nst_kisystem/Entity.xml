@@ -364,6 +364,7 @@
           <IsFilterable>0</IsFilterable>
           <IsRetrievable>0</IsRetrievable>
           <IsLocalizable>0</IsLocalizable>
+          <AppDefaultValue>-1</AppDefaultValue>
           <OptionSetName>nst_anhang3_kategorie</OptionSetName>
           <displaynames>
             <displayname description="Anhang-III-Kategorie" languagecode="1031" />
@@ -897,6 +898,7 @@
           <LogicalName>nst_organisation</LogicalName>
           <RequiredLevel>required</RequiredLevel>
           <DisplayMask>ValidForAdvancedFind|ValidForForm|ValidForGrid</DisplayMask>
+          <ImeMode>auto</ImeMode>
           <ValidForUpdateApi>1</ValidForUpdateApi>
           <ValidForReadApi>1</ValidForReadApi>
           <ValidForCreateApi>1</ValidForCreateApi>
@@ -1029,6 +1031,7 @@
           <IsFilterable>0</IsFilterable>
           <IsRetrievable>0</IsRetrievable>
           <IsLocalizable>0</IsLocalizable>
+          <AppDefaultValue>-1</AppDefaultValue>
           <OptionSetName>nst_risikoklasse</OptionSetName>
           <displaynames>
             <displayname description="Risikoklasse" languagecode="1031" />
@@ -1069,6 +1072,7 @@
           <IsFilterable>0</IsFilterable>
           <IsRetrievable>0</IsRetrievable>
           <IsLocalizable>0</IsLocalizable>
+          <AppDefaultValue>-1</AppDefaultValue>
           <OptionSetName>nst_rolle_kivo</OptionSetName>
           <displaynames>
             <displayname description="Rolle nach KI-Verordnung" languagecode="1031" />
@@ -1109,6 +1113,7 @@
           <IsFilterable>0</IsFilterable>
           <IsRetrievable>0</IsRetrievable>
           <IsLocalizable>0</IsLocalizable>
+          <AppDefaultValue>-1</AppDefaultValue>
           <OptionSetName>nst_status_kisystem</OptionSetName>
           <displaynames>
             <displayname description="Status" languagecode="1031" />
@@ -1149,6 +1154,7 @@
           <IsFilterable>0</IsFilterable>
           <IsRetrievable>0</IsRetrievable>
           <IsLocalizable>0</IsLocalizable>
+          <AppDefaultValue>-1</AppDefaultValue>
           <OptionSetName>nst_systemtyp</OptionSetName>
           <displaynames>
             <displayname description="Systemtyp" languagecode="1031" />
@@ -1232,6 +1238,7 @@
           <LogicalName>nst_verantwortlicher</LogicalName>
           <RequiredLevel>none</RequiredLevel>
           <DisplayMask>ValidForAdvancedFind|ValidForForm|ValidForGrid</DisplayMask>
+          <ImeMode>auto</ImeMode>
           <ValidForUpdateApi>1</ValidForUpdateApi>
           <ValidForReadApi>1</ValidForReadApi>
           <ValidForCreateApi>1</ValidForCreateApi>
