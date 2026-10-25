@@ -270,6 +270,12 @@ def load_definitions(directory: Path) -> Definitions:
     charts = [Chart(**c) for c in app_raw.get("chart", [])]
     dash_raw = app_raw["dashboard"]
     dashboard = Dashboard(dash_raw["name"], [DashboardComponent(**c) for c in dash_raw["components"]])
+    defaults: dict[str, int] = {}
+    for v in views:
+        defaults[v.table] = defaults.get(v.table, 0) + int(v.default)
+    for table, n in defaults.items():
+        if n > 1:
+            raise ValueError(f"Tabelle {table}: {n} Ansichten mit default = true; hoechstens eine (sonst wechselt die Standardansicht bei jedem Lauf)")
     areas = [Area(a["id"], a["title"], a.get("tables", []), a.get("dashboard")) for a in app_raw["area"]]
     a = app_raw["app"]
     app = AppDef(a["unique_name"], a["display"], a["description"], areas, views, forms, charts, dashboard)

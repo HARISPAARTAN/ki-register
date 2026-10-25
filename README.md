@@ -21,6 +21,7 @@ Einmalig, durch die Eigentümerin oder den Eigentümer nach `az login`:
 3. `uv run --env-file .env kiregister apply --env dev --only metadata` legt Auswahlfelder, Tabellen, Spalten und Beziehungen in der Lösung `NordsternKIRegister` an; ein zweiter Lauf legt nichts mehr an.
 4. `uv run --env-file .env kiregister apply --env dev --only security` legt Unternehmenseinheiten, die Rollen `nst KI-Governance`, `nst Fachbereich`, `nst Leser` mit ihren Privilegien und das Spaltensicherheitsprofil an (idempotent). Das Zuweisen von Rollen und Profil an Benutzer ist ein Portalschritt.
 5. `uv run --env-file .env kiregister apply --env dev --only app` legt Ansichten, Formulare, Diagramme, das Dashboard, die Sitemap und die modellgesteuerte App `nst_kiregister` an (idempotent). Prüfung durch den Eigentümer: https://make.powerapps.com, Apps, KI-Register, Abspielen (vier Bereiche, Ansichten, Formular-Registerkarten).
+   Hinweis: Die Tabellen werden erst mit dem Lösungsimport (Aufgabe 7, `AppModuleComponent` Typ 1) App-Komponenten; Rückfall im Wiederaufbau-Leitfaden ist der Portalschritt „Vorhandene hinzufügen“. Bis dahin zeigt die App die Tabellen nur über die Sitemap, und `ValidateApp` meldet Warnungen (im Abspielen sichtbar), keine Fehler.
 6. Integrationstests: `uv run --env-file .env pytest tests/integration -m dataverse -v`.
 
 ## Setup (English)

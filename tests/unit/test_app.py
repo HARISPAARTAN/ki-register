@@ -106,13 +106,37 @@ def test_ensure_views_creates_missing_views_with_the_object_type_code():
 def test_stock_default_views_are_switched_off():
     respx.get(url__startswith=API + "EntityDefinitions").respond(200, json={"ObjectTypeCode": 10625})
     mine = "00000000-0000-0000-0001-000000000001"
-    respx.get(API + "savedqueries").mock(side_effect=lambda request: httpx.Response(200, json={"value": (
-        [{"savedqueryid": mine, "name": "mine"}, {"savedqueryid": "stock-1", "name": "Active X"}] if "isdefault" in str(request.url) else [])}))
+    filters = []
+
+    def saved_queries(request):
+        flt = request.url.params.get("$filter", "")
+        if "isdefault" in flt:
+            filters.append(flt)
+            return httpx.Response(200, json={"value": [{"savedqueryid": mine, "name": "mine"}, {"savedqueryid": "stock-1", "name": "Active X"}]})
+        return httpx.Response(200, json={"value": []})
+
+    respx.get(API + "savedqueries").mock(side_effect=saved_queries)
     respx.post(API + "savedqueries").mock(return_value=created("savedqueries", mine))
     demote = respx.patch(API + "savedqueries(stock-1)").mock(return_value=httpx.Response(204))
     app.ensure_views(new_client(), DEFS, 58000)
     assert demote.call_count == 8  # one stock default per table
     assert json.loads(demote.calls[0].request.content) == {"isdefault": False}
+    assert len(filters) == 8
+    for t in DEFS.tables:  # every lookup is scoped to its own table and to public views
+        hits = [f for f in filters if f"returnedtypecode eq '{t.schema}'" in f]
+        assert len(hits) == 1 and "querytype eq 0" in hits[0] and "isdefault eq true" in hits[0]
+
+
+@respx.mock
+def test_second_run_finds_only_our_default_view_and_sends_no_demotion():
+    respx.get(url__startswith=API + "EntityDefinitions").respond(200, json={"ObjectTypeCode": 10625})
+    mine = "00000000-0000-0000-0001-000000000001"
+    respx.get(API + "savedqueries").mock(side_effect=lambda request: httpx.Response(200, json={"value": (
+        [{"savedqueryid": mine, "name": "mine"}] if "isdefault" in str(request.url) else [{"savedqueryid": mine}])}))
+    patches = respx.patch(url__regex=re.escape(API) + r"savedqueries\(.*").mock(return_value=httpx.Response(204))
+    app.ensure_views(new_client(), DEFS, 58000)
+    bodies = [json.loads(c.request.content) for c in patches.calls]
+    assert bodies and all(b != {"isdefault": False} for b in bodies)  # only the regular view updates, no demotion
 
 
 @respx.mock

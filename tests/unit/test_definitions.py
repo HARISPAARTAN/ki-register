@@ -61,3 +61,25 @@ def test_app_views_reference_existing_columns():
     for v in d.app.views:
         allowed = cols[v.table] | lookups.get(v.table, set())
         assert set(v.columns) <= allowed, (v.name, set(v.columns) - allowed)
+
+
+def test_at_most_one_default_view_per_table():
+    d = load_definitions(DEFS)
+    per_table = {}
+    for v in d.app.views:
+        per_table[v.table] = per_table.get(v.table, 0) + int(v.default)
+    assert all(n <= 1 for n in per_table.values())
+
+
+def test_two_default_views_on_one_table_are_rejected(tmp_path):
+    import shutil
+
+    import pytest
+    for f in DEFS.glob("*.toml"):
+        shutil.copy(f, tmp_path / f.name)
+    app_toml = tmp_path / "app.toml"
+    marker = 'name = "Hochrisiko-Systeme"\n'
+    text = app_toml.read_text(encoding="utf-8").replace(marker, marker + "default = true\n", 1)
+    app_toml.write_text(text, encoding="utf-8")
+    with pytest.raises(ValueError, match="nst_kisystem"):
+        load_definitions(tmp_path)
