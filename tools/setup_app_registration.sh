@@ -7,6 +7,7 @@ APP_ID=$(az ad app list --display-name "$NAME" --query "[0].appId" -o tsv)
 if [ -z "$APP_ID" ]; then
   APP_ID=$(az ad app create --display-name "$NAME" --sign-in-audience AzureADMyOrg --query appId -o tsv)
   az ad sp create --id "$APP_ID" >/dev/null
+  RESET_SECRET=1  # neue App: das erste Geheimnis muss erzeugt werden
 fi
 echo "TENANT_ID=$(az account show --query tenantId -o tsv)"
 echo "CLIENT_ID=$APP_ID"
