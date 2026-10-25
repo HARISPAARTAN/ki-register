@@ -25,7 +25,7 @@ Weitere Entscheidungen aus Review 1 (siehe README): Die Ansicht "Meine Anträge"
 - Builder werden an die Web API angepasst, nie die Umgebung von Hand; jede Korrektur wird mit Test und Eintrag in dieser ADR festgehalten.
 - Die Beschriftung der Beziehungen im Menü folgt dem Sammlungsnamen; in einer Umgebung mit deutscher Basissprache könnte ein eigenes Etikett später ergänzt werden.
 - Seed- und Abbauabläufe (Meilenstein 1, Aufgaben 5 und 6) müssen die Reihenfolge Teilnahme vor Mitarbeiter einhalten.
-- Weitere Korrekturen aus Aufgabe 4 (Sicherheit) werden unten in der Chronik ergänzt.
+- Die Sicherheitsschicht (Unternehmenseinheiten, Rollen, Spaltensicherheit) wurde ohne Ablehnung durch die Web API angelegt; Beobachtungen stehen in der Chronik.
 
 ## Chronik der Web-API-Korrekturen
 
@@ -35,3 +35,6 @@ Weitere Entscheidungen aus Review 1 (siehe README): Die Ansicht "Meine Anträge"
 | 2026-10-25 | Beziehungen | Menüetikett weggelassen |
 | 2026-10-25 | Client | `Prefer: return=representation` entfernt |
 | 2026-10-25 | Beziehungen | `nst_mitarbeiter_teilnahme` von `Cascade` zu `Restrict` |
+| 2026-10-25 | Sicherheit | Rollenprivilegien werden über `AddPrivilegesRole` mit `Depth` und `BusinessUnitId` (Nullwert) gesetzt; Tiefe und Vorhandensein werden aus `roleprivilegescollection` (`privilegedepthmask` 1/2/4/8) gelesen, damit auch eine abweichende Tiefe korrigiert wird |
+| 2026-10-25 | Sicherheit | Neue Rollen erhalten von Dataverse neun Basisprivilegien (z. B. `prvReadSdkMessage`); Prüfungen vergleichen daher nur die `nst_`- und Zusatzprivilegien exakt |
+| 2026-10-25 | Sicherheit | Rollen, Profile und Berechtigungen laufen durch die Lösung; Unternehmenseinheiten und der Anwendungsbenutzer nicht (Header `solution=False`) |

@@ -19,8 +19,9 @@ Einmalig, durch die Eigentümerin oder den Eigentümer nach `az login`:
 1. `bash tools/setup_app_registration.sh` legt die App-Registrierung `ki-register-automation` an und gibt Mandanten-ID, Client-ID und das Geheimnis (einmalig) aus. Die Werte kommen in die lokale, git-ignorierte `.env` (Vorlage: `.env.example`), nie in einen Chat.
 2. `uv run --env-file .env kiregister bootstrap --env dev` (und `--env test`) legt den Anwendungsbenutzer mit der Rolle Systemadministrator an; dafür wird die Azure-CLI-Sitzung der Eigentümerin oder des Eigentümers genutzt.
 3. `uv run --env-file .env kiregister apply --env dev --only metadata` legt Auswahlfelder, Tabellen, Spalten und Beziehungen in der Lösung `NordsternKIRegister` an; ein zweiter Lauf legt nichts mehr an.
-4. Integrationstests: `uv run --env-file .env pytest tests/integration -m dataverse -v`.
+4. `uv run --env-file .env kiregister apply --env dev --only security` legt Unternehmenseinheiten, die Rollen `nst KI-Governance`, `nst Fachbereich`, `nst Leser` mit ihren Privilegien und das Spaltensicherheitsprofil an (idempotent). Das Zuweisen von Rollen und Profil an Benutzer ist ein Portalschritt.
+5. Integrationstests: `uv run --env-file .env pytest tests/integration -m dataverse -v`.
 
 ## Setup (English)
 
-Once, by the owner after `az login`: run `tools/setup_app_registration.sh`, put tenant ID, client ID and secret into the git-ignored `.env`, then `kiregister bootstrap --env dev|test` (creates the application user with System Administrator via the owner's Azure CLI token) and `kiregister apply --env dev --only metadata` (idempotent). Integration tests: `pytest tests/integration -m dataverse`.
+Once, by the owner after `az login`: run `tools/setup_app_registration.sh`, put tenant ID, client ID and secret into the git-ignored `.env`, then `kiregister bootstrap --env dev|test` (creates the application user with System Administrator via the owner's Azure CLI token) and `kiregister apply --env dev --only metadata` (idempotent), then `kiregister apply --env dev --only security` (business units, three roles, column security profile; assigning users is a portal step). Integration tests: `pytest tests/integration -m dataverse`.
