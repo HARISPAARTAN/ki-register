@@ -99,3 +99,12 @@ def test_missing_role_raises():
     respx.get(API + "roles").respond(200, json={"value": []})
     with pytest.raises(RuntimeError, match="System Administrator"):
         bootstrap.ensure_application_user(new_client(), CLIENT_ID)
+
+
+@respx.mock
+def test_ensure_application_user_accepts_entity_body_response():
+    mock_lookups(respx.mock, [], [])
+    respx.post(API + "systemusers").mock(return_value=httpx.Response(201, json={"systemuserid": USER, "applicationid": CLIENT_ID}))
+    assign = respx.post(API + f"systemusers({USER})/systemuserroles_association/$ref").mock(return_value=httpx.Response(204))
+    assert bootstrap.ensure_application_user(new_client(), CLIENT_ID) == USER
+    assert assign.call_count == 1
