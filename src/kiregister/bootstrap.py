@@ -8,6 +8,7 @@ from .client import DataverseClient
 
 log = logging.getLogger(__name__)
 SYSTEM_ADMINISTRATOR = "System Administrator"
+SYSTEM_ADMINISTRATOR_TEMPLATE = "627090ff-40a3-4053-8790-584edc5be201"  # roletemplateid, language independent
 
 
 def root_business_unit(client: DataverseClient) -> str:
@@ -28,7 +29,9 @@ def ensure_application_user(client: DataverseClient, client_id: str) -> str:
         # defensive: a create normally answers 204 with OData-EntityId, which client.post turns into the id
         user_id = created["systemuserid"] if isinstance(created, dict) else created
         log.info("Anwendungsbenutzer %s angelegt", user_id)
-    role = client.find_one("roles", f"name eq '{SYSTEM_ADMINISTRATOR}' and _businessunitid_value eq {root_bu}", "roleid")
+    in_root = f"_businessunitid_value eq {root_bu}"
+    role = (client.find_one("roles", f"roletemplateid eq {SYSTEM_ADMINISTRATOR_TEMPLATE} and {in_root}", "roleid")
+            or client.find_one("roles", f"name eq '{SYSTEM_ADMINISTRATOR}' and {in_root}", "roleid"))
     if not role:
         raise RuntimeError("Rolle System Administrator nicht gefunden")
     assigned = client.get(f"systemusers({user_id})/systemuserroles_association", {"$select": "roleid"}).get("value", [])

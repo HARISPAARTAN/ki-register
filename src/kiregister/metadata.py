@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 def ensure_publisher_and_solution(client: DataverseClient, settings: Settings) -> None:
     pub = client.find_one("publishers", f"uniquename eq '{settings.publisher_unique}'", "publisherid")
     if not pub:
-        pub_id = client.post("publishers", {"uniquename": settings.publisher_unique, "friendlyname": settings.publisher_display,
+        pub_id = client.post_id("publishers", {"uniquename": settings.publisher_unique, "friendlyname": settings.publisher_display,
                                             "customizationprefix": settings.prefix, "customizationoptionvalueprefix": settings.option_prefix},
                              solution=False, component=settings.publisher_unique)
         log.info("Publisher %s angelegt", settings.publisher_unique)
@@ -36,7 +36,7 @@ def ensure_choices(client: DataverseClient, defs: Definitions, option_prefix: in
         if c.schema in existing:
             ids[c.schema] = existing[c.schema]
             continue
-        ids[c.schema] = client.post("GlobalOptionSetDefinitions", builders.choice_payload(c, option_prefix), component=c.schema)
+        ids[c.schema] = client.post_id("GlobalOptionSetDefinitions", builders.choice_payload(c, option_prefix), component=c.schema)
         log.info("Auswahl %s angelegt", c.schema)
     return ids
 

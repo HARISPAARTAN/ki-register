@@ -27,7 +27,9 @@ def main(verbose: Annotated[bool, typer.Option("--verbose", "-v")] = False) -> N
                 stream.reconfigure(encoding="utf-8")
             except Exception:
                 pass
-    logging.basicConfig(level=logging.DEBUG if verbose else logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    # third-party loggers (msal, httpx, httpcore) stay at WARNING; -v raises only the kiregister logger
+    logging.basicConfig(level=logging.WARNING, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    logging.getLogger("kiregister").setLevel(logging.DEBUG if verbose else logging.INFO)
 
 
 def _client(env: str) -> tuple[DataverseClient, object, object]:

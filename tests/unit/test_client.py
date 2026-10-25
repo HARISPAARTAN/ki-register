@@ -254,3 +254,14 @@ def test_context_manager_closes_the_http_client():
     with DataverseClient(API, Tokens()) as c:
         assert not c._http.is_closed
     assert c._http.is_closed
+
+
+@respx.mock
+def test_post_id_returns_the_id_and_rejects_a_missing_one():
+    api = "https://org.crm4.dynamics.com/api/data/v9.2/"
+    c = DataverseClient(api, type("T", (), {"token": lambda self: "t"})(), solution="S")
+    respx.post(api + "things").mock(return_value=httpx.Response(204, headers={"OData-EntityId": api + "things(11111111-2222-3333-4444-555555555555)"}))
+    assert c.post_id("things", {}) == "11111111-2222-3333-4444-555555555555"
+    respx.post(api + "bare").mock(return_value=httpx.Response(204))
+    with pytest.raises(DataverseError, match="ID"):
+        c.post_id("bare", {})

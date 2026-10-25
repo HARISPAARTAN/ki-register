@@ -143,6 +143,13 @@ class DataverseClient:
             return m.group(1) if m else entity
         return resp.json() if resp.content else None
 
+    def post_id(self, path: str, json: dict, solution: bool = True, component: str | None = None) -> str:
+        """POST a create and return the new record id; fails if the answer carries no id."""
+        created = self.post(path, json, solution=solution, component=component)
+        if not isinstance(created, str):
+            raise DataverseError(0, "no-id", "Die Antwort enthaelt keine Datensatz-ID (OData-EntityId fehlt)", path, component)
+        return created
+
     def patch(self, path: str, json: dict, solution: bool = True, component: str | None = None) -> None:
         self._request("PATCH", path, json=json, solution=solution, component=component)
 

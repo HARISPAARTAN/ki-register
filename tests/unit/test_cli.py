@@ -108,3 +108,36 @@ def test_ensure_application_user_accepts_entity_body_response():
     assign = respx.post(API + f"systemusers({USER})/systemuserroles_association/$ref").mock(return_value=httpx.Response(204))
     assert bootstrap.ensure_application_user(new_client(), CLIENT_ID) == USER
     assert assign.call_count == 1
+
+
+@respx.mock
+def test_role_is_looked_up_by_template_id_first():
+    respx.get(API + "businessunits").respond(200, json={"value": [{"businessunitid": BU}]})
+    respx.get(API + "systemusers").respond(200, json={"value": [{"systemuserid": USER}]})
+    roles = respx.get(API + "roles").respond(200, json={"value": [{"roleid": ROLE}]})
+    respx.get(API + f"systemusers({USER})/systemuserroles_association").respond(200, json={"value": [{"roleid": ROLE}]})
+    bootstrap.ensure_application_user(new_client(), CLIENT_ID)
+    assert roles.call_count == 1
+    assert "roletemplateid eq 627090ff-40a3-4053-8790-584edc5be201" in str(roles.calls[0].request.url).replace("%20", " ").replace("+", " ")
+
+
+@respx.mock
+def test_role_lookup_falls_back_to_the_name():
+    respx.get(API + "businessunits").respond(200, json={"value": [{"businessunitid": BU}]})
+    respx.get(API + "systemusers").respond(200, json={"value": [{"systemuserid": USER}]})
+    roles = respx.get(API + "roles").mock(side_effect=[httpx.Response(200, json={"value": []}),
+                                                       httpx.Response(200, json={"value": [{"roleid": ROLE}]})])
+    respx.get(API + f"systemusers({USER})/systemuserroles_association").respond(200, json={"value": [{"roleid": ROLE}]})
+    bootstrap.ensure_application_user(new_client(), CLIENT_ID)
+    assert roles.call_count == 2
+    assert "System%20Administrator" in str(roles.calls[1].request.url) or "System+Administrator" in str(roles.calls[1].request.url)
+
+
+def test_verbose_scopes_debug_to_the_kiregister_logger():
+    import logging
+    runner.invoke(app, ["apply", "--help"])
+    assert logging.getLogger("kiregister").level == logging.INFO
+    runner.invoke(app, ["-v", "apply", "--help"])
+    assert logging.getLogger("kiregister").level == logging.DEBUG
+    assert logging.getLogger("msal").getEffectiveLevel() >= logging.WARNING
+    logging.getLogger("kiregister").setLevel(logging.NOTSET)

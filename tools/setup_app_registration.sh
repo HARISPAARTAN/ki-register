@@ -10,5 +10,11 @@ if [ -z "$APP_ID" ]; then
 fi
 echo "TENANT_ID=$(az account show --query tenantId -o tsv)"
 echo "CLIENT_ID=$APP_ID"
-echo "Secret (einmalig, danach in .env eintragen):"
-az ad app credential reset --id "$APP_ID" --display-name "kiregister $(date +%Y-%m)" --years 1 --query password -o tsv
+# WARNUNG: `az ad app credential reset` ERSETZT alle vorhandenen Geheimnisse der App. Ein erneuter Lauf macht das Geheimnis in
+# .env und in den GitHub-Secrets ungueltig. Deshalb nur auf ausdruecklichen Wunsch: RESET_SECRET=1 bash tools/setup_app_registration.sh
+if [ "${RESET_SECRET:-0}" = "1" ]; then
+  echo "Secret (einmalig, danach in .env eintragen):"
+  az ad app credential reset --id "$APP_ID" --display-name "kiregister $(date +%Y-%m)" --years 1 --query password -o tsv
+else
+  echo "Geheimnis nicht zurueckgesetzt (bestehendes bleibt gueltig). Neues Geheimnis erzeugen: RESET_SECRET=1 bash $0" >&2
+fi
