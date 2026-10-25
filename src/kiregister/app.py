@@ -173,10 +173,15 @@ def app_components(defs: Definitions, form_ids: dict, view_ids: dict, chart_ids:
     return comps
 
 
+def app_unique_name(settings: Settings, defs: Definitions) -> str:
+    """Unique name of the app module: the prefix is added once."""
+    return f"{settings.prefix}_{defs.app.unique_name.removeprefix(settings.prefix + '_')}"
+
+
 def ensure_app_module(client: DataverseClient, settings: Settings, defs: Definitions, dashboard_id: str, form_ids: dict, view_ids: dict,
                       chart_ids: dict) -> str:
     a = defs.app
-    unique = f"{settings.prefix}_{a.unique_name.removeprefix(settings.prefix + '_')}"
+    unique = app_unique_name(settings, defs)
     app_id = find_app_module(client, unique)
     if not app_id:
         app_id = client.post_id("appmodules", {"name": a.display, "uniquename": unique, "description": a.description, "clienttype": APP_CLIENT_TYPE_UCI,

@@ -217,13 +217,36 @@ def test_owner_teams_are_created_with_the_role_of_their_unit():
 @respx.mock
 def test_owner_teams_are_idempotent():
     respx.get(API + "WhoAmI").respond(200, json={"UserId": "app-user"})
-    respx.get(API + "teams").respond(200, json={"value": [{"teamid": "t1"}]})
+    lookup = respx.get(API + "teams").respond(200, json={"value": [{"teamid": "t1"}]})
     respx.get(API + "roles").respond(200, json={"value": [{"roleid": "role-copy"}]})
     respx.get(API + "teams(t1)/teamroles_association").respond(200, json={"value": [{"roleid": "role-copy"}]})
     create = respx.post(API + "teams").mock(return_value=httpx.Response(204))
     assign = respx.post(API + "teams(t1)/teamroles_association/$ref").mock(return_value=httpx.Response(204))
     assert security.ensure_owner_teams(new_client(), {"Nordstern Energie": ENERGIE}) == {"Nordstern Energie": "t1"}
     assert create.call_count == 0 and assign.call_count == 0
+    flt = lookup.calls[0].request.url.params["$filter"]
+    assert "name eq 'Nordstern Energie Datenbesitz'" in flt and f"_businessunitid_value eq {ENERGIE}" in flt
+
+
+@respx.mock
+def test_find_owner_teams_reads_only_and_filters_by_name_and_unit():
+    respx.get(API + "businessunits").respond(200, json={"value": [{"businessunitid": ENERGIE, "name": "Nordstern Energie"}]})
+    lookup = respx.get(API + "teams").respond(200, json={"value": [{"teamid": "t1"}]})
+    post = respx.post(url__startswith=API).mock(return_value=httpx.Response(204))
+    assert security.find_owner_teams(new_client(), ["Nordstern Energie"]) == {"Nordstern Energie": "t1"}
+    flt = lookup.calls[0].request.url.params["$filter"]
+    assert "name eq 'Nordstern Energie Datenbesitz'" in flt and f"_businessunitid_value eq {ENERGIE}" in flt
+    assert post.call_count == 0
+
+
+@respx.mock
+def test_find_owner_teams_names_the_missing_unit_or_team():
+    respx.get(API + "businessunits").respond(200, json={"value": [{"businessunitid": ENERGIE, "name": "Nordstern Energie"}]})
+    respx.get(API + "teams").respond(200, json={"value": []})
+    with pytest.raises(RuntimeError, match="Team Nordstern Energie Datenbesitz fehlt: zuerst `kiregister apply --only security` ausführen"):
+        security.find_owner_teams(new_client(), ["Nordstern Energie"])
+    with pytest.raises(RuntimeError, match="Unternehmenseinheit Nordstern Klinikum fehlt: zuerst `kiregister apply --only security` ausführen"):
+        security.find_owner_teams(new_client(), ["Nordstern Klinikum"])
 
 
 @respx.mock

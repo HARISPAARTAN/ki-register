@@ -89,3 +89,12 @@ def test_kisystem_form_has_the_five_tabs_of_the_spec():
     form = next(f for f in d.app.forms if f.table == "nst_kisystem")
     assert [t.name for t in form.tabs] == ["Allgemein", "Einstufung", "Daten und Betroffene", "Verlauf", "Intern"]
     assert [v.name for v in d.app.views if v.table == "nst_anwendungsfall"] == ["Offene Anträge"]  # no "Meine Anträge" in M1
+
+
+def test_hochrisiko_view_shows_tier_hoch_only():
+    from kiregister import builders
+    d = load_definitions(DEFS)
+    view = next(v for v in d.app.views if v.name == "Hochrisiko-Systeme")
+    assert [(f.column, f.op, f.values) for f in view.filter] == [("nst_risikoklasse", "eq", ["Hoch"])]
+    xml = builders.fetch_xml(view, d, 58000)
+    assert 'attribute="nst_risikoklasse" operator="eq" value="580000002"' in xml and "580000001" not in xml

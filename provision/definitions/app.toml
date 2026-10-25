@@ -35,7 +35,7 @@ order = ["nst_naechstepruefung"]
 table = "nst_kisystem"
 name = "Hochrisiko-Systeme"
 columns = ["nst_kennung", "nst_name", "nst_organisation", "nst_anhang3kategorie", "nst_status", "nst_naechstepruefung", "nst_verantwortlicher"]
-filter = [{ column = "nst_risikoklasse", op = "in", values = ["Hoch", "Unannehmbar (Art. 5)"] }]
+filter = [{ column = "nst_risikoklasse", op = "eq", values = ["Hoch"] }]
 order = ["nst_organisation"]
 
 [[view]]

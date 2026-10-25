@@ -106,6 +106,22 @@ def ensure_owner_teams(client: DataverseClient, bu_ids: dict[str, str]) -> dict[
     return teams
 
 
+def find_owner_teams(client: DataverseClient, units: list[str]) -> dict[str, str]:
+    """Owner team id per business unit name; read-only. Stops when a unit or its owner team is missing (created by `apply --only security`)."""
+    rows = client.get("businessunits", {"$select": "businessunitid,name"})["value"]
+    unit_ids = {r["name"]: r["businessunitid"] for r in rows}
+    teams = {}
+    for unit in units:
+        if unit not in unit_ids:
+            raise RuntimeError(f"Unternehmenseinheit {unit} fehlt: zuerst `kiregister apply --only security` ausführen")
+        name = owner_team_name(unit)
+        team = client.find_one("teams", f"name eq '{name}' and _businessunitid_value eq {unit_ids[unit]}", "teamid")
+        if not team:
+            raise RuntimeError(f"Team {name} fehlt: zuerst `kiregister apply --only security` ausführen")
+        teams[unit] = team["teamid"]
+    return teams
+
+
 def _role_in_unit(client: DataverseClient, role: str, bu: str) -> str:
     """The copy of a root role inside a child unit; Dataverse creates the copy together with the role, possibly a moment later."""
     for wait in TEAM_WAIT_SECONDS:

@@ -66,11 +66,17 @@ def apply(env: EnvOpt = "dev", only: Annotated[str | None, typer.Option("--only"
 
 
 @app.command()
-def seed(env: EnvOpt = "dev") -> None:
-    """Fiktive Registerdaten laden (upsert mit festen GUIDs)."""
+def seed(env: EnvOpt = "dev", stichtag: Annotated[str | None, typer.Option("--stichtag", help="Referenzdatum YYYY-MM-DD (Standard: heute, UTC); alle Datumswerte werden um ganze Wochen dorthin verschoben")] = None) -> None:
+    """Fiktive Registerdaten laden (upsert mit festen GUIDs; Datumswerte relativ zum Stichtag)."""
+    from datetime import date
+
     from .seed import load_seed
+    try:
+        day = date.fromisoformat(stichtag) if stichtag else None
+    except ValueError:
+        raise typer.BadParameter("--stichtag muss YYYY-MM-DD sein", param_hint="--stichtag") from None
     client, settings, defs = _client(env)
-    typer.echo(f"seed: {load_seed(client, settings, defs)}")
+    typer.echo(f"seed: {load_seed(client, settings, defs, day)}")
 
 
 @app.command()
