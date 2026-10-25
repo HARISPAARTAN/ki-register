@@ -3,7 +3,11 @@ name: CI
 on:
   push:
     branches: [main]
+  # Der Export (export-solution.yml) öffnet Pull Requests mit dem Token von Actions; deren Workflow-Läufe verlangen eine Freigabe
+  # und enden sonst als roter Lauf ("required approval but was not approved"). Reine Änderungen an solution/ brauchen kein CI.
   pull_request:
+    paths-ignore:
+      - "solution/**"
   workflow_dispatch:
 
 permissions:
