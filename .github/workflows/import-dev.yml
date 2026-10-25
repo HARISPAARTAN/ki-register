@@ -1,8 +1,11 @@
 name: Lösung nach Dev importieren
 
 # Packt solution/src als unmanaged Lösung und importiert sie nach Nordstern Dev. Gebraucht, wenn die Quelle von Hand ergänzt wurde,
-# etwa um die App-Komponenten der Tabellen (ADR-002); danach exportiert export-solution.yml den Stand erneut.
-# pac läuft nur auf dem Runner.
+# etwa um die App-Komponenten der Tabellen (ADR-002), und beim Aufbau einer neuen Umgebung aus dem Repository (Wiederaufbau-Anleitung);
+# danach exportiert export-solution.yml den Stand erneut.
+# ACHTUNG: force-overwrite ersetzt unverwaltete Anpassungen in Dev durch den Stand aus solution/src. Hat Dev Änderungen, die noch nicht
+# im Repository stehen, zuerst export-solution.yml ausführen und den Pull Request zusammenführen, sonst gehen sie verloren.
+# pac läuft nur auf dem Runner. Aktionen von Dritten sind auf einen Commit-SHA festgelegt (siehe export-solution.yml).
 
 on:
   workflow_dispatch:
@@ -19,19 +22,19 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v5
-      - uses: microsoft/powerplatform-actions/actions-install@v1
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: microsoft/powerplatform-actions/actions-install@6e91314a9c6e694ea5c894fe8c40e09d73aa892b # v1
       - run: mkdir -p dist
 
       - name: Unmanaged packen
-        uses: microsoft/powerplatform-actions/pack-solution@v1
+        uses: microsoft/powerplatform-actions/pack-solution@6e91314a9c6e694ea5c894fe8c40e09d73aa892b # v1
         with:
           solution-folder: solution/src
           solution-file: dist/NordsternKIRegister.zip
           solution-type: Unmanaged
 
       - name: Nach Dev importieren
-        uses: microsoft/powerplatform-actions/import-solution@v1
+        uses: microsoft/powerplatform-actions/import-solution@6e91314a9c6e694ea5c894fe8c40e09d73aa892b # v1
         with:
           environment-url: ${{ secrets.DATAVERSE_URL_DEV }}
           app-id: ${{ secrets.CLIENT_ID }}

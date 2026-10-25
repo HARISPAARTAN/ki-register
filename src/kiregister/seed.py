@@ -27,7 +27,7 @@ DATE_FORMAT = re.compile(r"\d{4}-\d{2}-\d{2}")
 NAMESPACE = uuid.UUID("6f1f0c1e-3a5b-4d2e-9f8a-2b7c1d0e9a11")
 SEED_ANCHOR = date(2026, 10, 25)  # reference date of the dates in the CSVs
 DATED_NAME_COLUMN = {"nst_risikobewertung": "nst_datum"}  # table -> date column whose shifted month ends the name ("<CSV name> YYYY-MM")
-ORDER =["nst_organisation", "nst_mitarbeiter", "nst_kisystem", "nst_anwendungsfall", "nst_risikobewertung", "nst_massnahme", "nst_schulung", "nst_schulungsteilnahme"]
+ORDER = ["nst_organisation", "nst_mitarbeiter", "nst_kisystem", "nst_anwendungsfall", "nst_risikobewertung", "nst_massnahme", "nst_schulung", "nst_schulungsteilnahme"]
 FILES = {"nst_organisation": "organisationen.csv", "nst_mitarbeiter": "mitarbeiter.csv", "nst_kisystem": "kisysteme.csv", "nst_anwendungsfall": "anwendungsfaelle.csv",
          "nst_risikobewertung": "risikobewertungen.csv", "nst_massnahme": "massnahmen.csv", "nst_schulung": "schulungen.csv", "nst_schulungsteilnahme": "teilnahmen.csv"}
 

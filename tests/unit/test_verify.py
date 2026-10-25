@@ -18,6 +18,9 @@ DATA = read_seed(ROOT / "data" / "seed")
 API = "https://verify-test.crm4.dynamics.com/api/data/v9.2/"
 UNITS = DEFS.security.business_units
 PROFILE = DEFS.security.column_security.profile
+APP_ID = "a1"
+APP_UNIQUE = "nst_kiregister"
+SEED_PARAMETERS = {"skip_unit", "skip_team", "counts", "team_members", "role_holders"}
 
 
 class Tokens:
@@ -25,30 +28,31 @@ class Tokens:
         return "t"
 
 
-def mock_environment(skip_table=None, skip_attribute=None, skip_choice=None, skip_relationship=None, skip_role=None, skip_unit=None,
-                     skip_team=None, no_app=False, counts=None, team_members=None, role_holders=0, skip_profile=False, skip_permission=False,
-                     solution_only=False):
-    """Everything the definitions ask for exists, with the seed counts of the CSVs unless `counts` overrides them.
+def metadata_id(table):
+    return f"meta-{table}"
 
-    `solution_only` models Nordstern Test after the managed import: the solution components exist, but there are no business units,
-    owner teams or seed, and no route for them is registered (a request for one fails the test as unmocked)."""
+
+def mock_solution(skip_table=None, skip_attribute=None, skip_choice=None, skip_relationship=None, skip_role=None, skip_profile=False,
+                  skip_permission=False, no_app=False, not_in_app=None):
+    """Everything that belongs to the solution exists: what Nordstern Test has after the managed import.
+
+    `not_in_app` names a table that exists but is no component of the app: the app still lists its id, but under another component
+    type, which must not count. No route is registered for anything else, so a request for it fails the test as unmocked."""
     tables = [t for t in DEFS.tables if t.schema != skip_table]
-    respx.get(API + "EntityDefinitions").respond(200, json={"value": [{"LogicalName": t.schema} for t in tables]})
+    respx.get(API + "EntityDefinitions").respond(200, json={"value": [{"LogicalName": t.schema, "MetadataId": metadata_id(t.schema)} for t in tables]})
     for t in tables:
         names = [c.schema for c in t.columns] + [r.lookup.logical for r in DEFS.lookups_of(t.schema)]
-        names = [n for n in names if n != skip_attribute]
-        respx.get(API + f"EntityDefinitions(LogicalName='{t.schema}')/Attributes").respond(200, json={"value": [{"LogicalName": n} for n in names]})
-        if not solution_only:
-            respx.get(API + f"EntityDefinitions(LogicalName='{t.schema}')").respond(200, json={"EntitySetName": t.schema + "s"})
-            respx.get(API + f"{t.schema}s/$count").respond(200, text=str((counts or {}).get(t.schema, len(DATA[t.schema]))))
+        respx.get(API + f"EntityDefinitions(LogicalName='{t.schema}')/Attributes").respond(
+            200, json={"value": [{"LogicalName": n} for n in names if n != skip_attribute]})
     respx.get(API + "GlobalOptionSetDefinitions").respond(200, json={"value": [{"Name": c.schema} for c in DEFS.choices if c.schema != skip_choice]})
     respx.get(API + "RelationshipDefinitions").respond(200, json={"value": [{"SchemaName": r.schema} for r in DEFS.relationships if r.schema != skip_relationship]})
     role_rows = [{"name": r.name, "roleid": f"role-{i}"} for i, r in enumerate(DEFS.security.roles) if r.name != skip_role]
-    owner_copies = [{"name": OWNER_ROLE, "roleid": f"copy-{u}"} for u in range(3)]
+    owner_copies = [{"name": OWNER_ROLE, "roleid": f"copy-{u}"} for u in range(len(UNITS))]
 
     def roles(request):
-        wanted = request.url.params.get("$filter")
-        rows = [r for r in role_rows + owner_copies if r["name"] == OWNER_ROLE] if wanted else role_rows + owner_copies
+        rows = role_rows + owner_copies
+        if request.url.params.get("$filter"):  # only the owner invariant of a full verify asks for the role by name
+            rows = [r for r in rows if r["name"] == OWNER_ROLE]
         return httpx.Response(200, json={"value": rows})
 
     respx.get(API + "roles").mock(side_effect=roles)
@@ -56,19 +60,40 @@ def mock_environment(skip_table=None, skip_attribute=None, skip_choice=None, ski
     respx.get(API + "fieldsecurityprofiles").respond(200, json={"value": [] if skip_profile else [{"fieldsecurityprofileid": "profile-1"}]})
     respx.get(API + "fieldpermissions").respond(200, json={"value": [] if skip_permission else [
         {"entityname": table, "attributelogicalname": column} for table, column in column_security.columns]})
-    respx.get(API + "appmodules").respond(200, json={"value": [] if no_app else [{"appmoduleid": "a1"}]})
+    respx.get(API + "appmodules").respond(200, json={"value": [] if no_app else [{"appmoduleid": APP_ID}]})
     respx.get(API + "appmodules/Microsoft.Dynamics.CRM.RetrieveUnpublishedMultiple()").respond(200, json={"value": []})
-    if solution_only:
-        return
-    for rid in [r["roleid"] for r in role_rows + owner_copies]:
+    if not no_app:  # without the app module there is nothing to ask for
+        components = [{"componenttype": 60, "objectid": "form-1"}, {"componenttype": 26, "objectid": "view-1"}]
+        components += [{"componenttype": 1, "objectid": metadata_id(t.schema)} for t in tables if t.schema != not_in_app]
+        if not_in_app:
+            components.append({"componenttype": 26, "objectid": metadata_id(not_in_app)})
+        respx.get(API + f"RetrieveAppComponents(AppModuleId={APP_ID})").respond(200, json={"value": components})
+
+
+def mock_seed(skip_table=None, skip_unit=None, skip_team=None, counts=None, team_members=0, role_holders=0):
+    """What only a full environment (Nordstern Dev) has: entity sets with the seed counts, business units, owner teams and their members."""
+    for t in DEFS.tables:
+        if t.schema != skip_table:
+            respx.get(API + f"EntityDefinitions(LogicalName='{t.schema}')").respond(200, json={"EntitySetName": t.schema + "s"})
+            respx.get(API + f"{t.schema}s/$count").respond(200, text=str((counts or {}).get(t.schema, len(DATA[t.schema]))))
+    for rid in [f"role-{i}" for i in range(len(DEFS.security.roles))] + [f"copy-{u}" for u in range(len(UNITS))]:
         holders = [{"systemuserid": "u1"}] * role_holders if rid == "copy-0" else []
         respx.get(API + f"roles({rid})/systemuserroles_association").respond(200, json={"value": holders})
     respx.get(API + "businessunits").respond(200, json={"value": [{"name": n} for n in UNITS if n != skip_unit]})
     teams = [{"name": owner_team_name(u), "teamid": f"team-{i}"} for i, u in enumerate(UNITS) if owner_team_name(u) != skip_team]
     respx.get(API + "teams").respond(200, json={"value": teams})
     for i in range(len(UNITS)):
-        members = [{"systemuserid": "u9"}] * (team_members or 0) if i == 0 else []
+        members = [{"systemuserid": "u9"}] * team_members if i == 0 else []
         respx.get(API + f"teams(team-{i})/teammembership_association").respond(200, json={"value": members})
+
+
+def mock_environment(solution_only=False, **kwargs):
+    """The whole environment (Nordstern Dev) with the seed counts of the CSVs unless `counts` overrides them, or with `solution_only` just
+    the solution components, as in Nordstern Test after the managed import: no business units, owner teams or seed, and no route for them."""
+    seed = {name: kwargs.pop(name) for name in SEED_PARAMETERS & kwargs.keys()}
+    mock_solution(**kwargs)
+    if not solution_only:
+        mock_seed(skip_table=kwargs.get("skip_table"), **seed)
 
 
 def run(**kwargs):
@@ -89,26 +114,40 @@ def test_missing_table_is_reported_and_its_seed_check_says_the_table_is_missing_
 
 @respx.mock
 def test_missing_table_without_the_seed_check():
-    mock_environment(skip_table="nst_schulung")
-    assert run(expect_seed=False) == ["Tabelle nst_schulung"]
+    mock_environment(solution_only=True, skip_table="nst_schulung")
+    assert run(expect_seed=False) == ["Tabelle nst_schulung"]  # not also reported as a missing app component
 
 
-@pytest.mark.parametrize("kwargs, expected", [
+SOLUTION_CASES = [  # deviations in solution components: reported by a full verify and by the solution-only verify alike
     ({"skip_attribute": "nst_zweck"}, ["Spalte nst_kisystem.nst_zweck", "Spalte nst_anwendungsfall.nst_zweck"]),
     ({"skip_attribute": "nst_kisystem"}, ["Nachschlagefeld nst_risikobewertung.nst_kisystem", "Nachschlagefeld nst_massnahme.nst_kisystem",
                                           "Nachschlagefeld nst_anwendungsfall.nst_kisystem"]),
     ({"skip_choice": "nst_risikoklasse"}, ["Auswahlfeld nst_risikoklasse"]),
     ({"skip_relationship": "nst_kisystem_massnahme"}, ["Beziehung nst_kisystem_massnahme"]),
     ({"skip_role": "nst Leser"}, ["Rolle nst Leser"]),
-    ({"skip_unit": "Nordstern Energie"}, ["Unternehmenseinheit Nordstern Energie"]),
-    ({"skip_team": "Nordstern Klinikum Datenbesitz"}, ["Team Nordstern Klinikum Datenbesitz"]),
     ({"skip_profile": True}, [f"Spaltensicherheitsprofil {PROFILE}"]),
     ({"skip_permission": True}, [f"Spaltenberechtigung {table}.{column}" for table, column in DEFS.security.column_security.columns]),
     ({"no_app": True}, ["App-Modul"]),
+    ({"not_in_app": "nst_massnahme"}, [f"App-Komponente {APP_UNIQUE}: Tabelle nst_massnahme"]),
+]
+SEED_CASES = [  # business units, owner teams and the seed exist only in the full environment
+    ({"skip_unit": "Nordstern Energie"}, ["Unternehmenseinheit Nordstern Energie"]),
+    ({"skip_team": "Nordstern Klinikum Datenbesitz"}, ["Team Nordstern Klinikum Datenbesitz"]),
     ({"counts": {"nst_kisystem": 19}}, ["Seed nst_kisystem: 19 statt mindestens 20 (kisysteme.csv)"]),
-])
+]
+
+
+@pytest.mark.parametrize("solution_only", [False, True], ids=["voll", "nur-loesung"])
+@pytest.mark.parametrize("kwargs, expected", SOLUTION_CASES)
 @respx.mock
-def test_each_kind_of_deviation_is_reported(kwargs, expected):
+def test_each_kind_of_solution_deviation_is_reported_in_both_modes(solution_only, kwargs, expected):
+    mock_environment(solution_only=solution_only, **kwargs)
+    assert sorted(run(expect_seed=not solution_only)) == sorted(expected)
+
+
+@pytest.mark.parametrize("kwargs, expected", SEED_CASES)
+@respx.mock
+def test_each_kind_of_seed_deviation_is_reported(kwargs, expected):
     mock_environment(**kwargs)
     assert sorted(run()) == sorted(expected)
 
@@ -119,20 +158,18 @@ def test_solution_only_mode_asks_for_no_business_unit_owner_team_membership_or_s
     assert run(expect_seed=False) == []
 
 
-@pytest.mark.parametrize("kwargs, expected", [
-    ({"skip_table": "nst_schulung"}, ["Tabelle nst_schulung"]),
-    ({"skip_attribute": "nst_zweck"}, ["Spalte nst_kisystem.nst_zweck", "Spalte nst_anwendungsfall.nst_zweck"]),
-    ({"skip_choice": "nst_risikoklasse"}, ["Auswahlfeld nst_risikoklasse"]),
-    ({"skip_relationship": "nst_kisystem_massnahme"}, ["Beziehung nst_kisystem_massnahme"]),
-    ({"skip_role": "nst Leser"}, ["Rolle nst Leser"]),
-    ({"skip_profile": True}, [f"Spaltensicherheitsprofil {PROFILE}"]),
-    ({"skip_permission": True}, [f"Spaltenberechtigung {table}.{column}" for table, column in DEFS.security.column_security.columns]),
-    ({"no_app": True}, ["App-Modul"]),
-])
 @respx.mock
-def test_solution_only_mode_still_reports_every_missing_solution_component(kwargs, expected):
-    mock_environment(solution_only=True, **kwargs)
-    assert sorted(run(expect_seed=False)) == sorted(expected)
+def test_a_table_id_held_under_another_component_type_is_no_table_component():
+    mock_environment(solution_only=True, not_in_app="nst_kisystem")  # the id is in the app, as a view (type 26)
+    assert run(expect_seed=False) == [f"App-Komponente {APP_UNIQUE}: Tabelle nst_kisystem"]
+
+
+@pytest.mark.parametrize("solution_only", [False, True], ids=["voll", "nur-loesung"])
+@respx.mock
+def test_the_app_components_are_asked_for_once_in_both_modes(solution_only):
+    mock_environment(solution_only=solution_only)
+    assert run(expect_seed=not solution_only) == []
+    assert len([c for c in respx.calls if "RetrieveAppComponents" in str(c.request.url)]) == 1
 
 
 @respx.mock

@@ -1,0 +1,13 @@
+# Die Aktionen in .github/workflows sind auf Commit-SHAs festgelegt (Tag als Kommentar). Dependabot schlägt neue Stände als
+# Pull Request vor; der Diff zeigt den neuen SHA und das neue Tag.
+#
+# Vorsicht bei microsoft/powerplatform-actions: Der Tag v1 liegt drei Commits vor dem letzten Release v1.9.2 (PAC 2.8.1 statt 2.7.4).
+# Ein Vorschlag auf v1.9.2 wäre ein Rückschritt: nicht zusammenführen, sondern den Kopf von v1 prüfen (ADR-003).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci"

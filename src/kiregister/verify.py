@@ -9,6 +9,8 @@ from .definitions import Definitions
 from .security import OWNER_ROLE, owner_team_name
 from .seed import FILES, ORDER, entity_set, read_seed
 
+TABLE_COMPONENT_TYPE = 1  # componenttype of a table in RetrieveAppComponents (AppModuleComponent type 1 in the solution source)
+
 
 def _owner_invariants(client: DataverseClient, defs: Definitions, teams: dict[str, str]) -> list[str]:
     """Owner teams hold the read-only role on every table (Risikobewertung included): they must stay member-less and the role must
@@ -38,14 +40,24 @@ def _column_security(client: DataverseClient, defs: Definitions) -> list[str]:
     return [f"Spaltenberechtigung {table}.{column}" for table, column in cs.columns if (table, column) not in permissions]
 
 
+def _app_table_components(client: DataverseClient, app_id: str, unique: str, table_ids: dict[str, str]) -> list[str]:
+    """Every table is a component of the app. `AddAppComponents` cannot add tables on this environment (ADR-002): `apply` leaves them
+    out, and the solution import brings them (AppModuleComponent type 1 in solution/src). Without them ValidateApp warns about every
+    other component. This is what makes the figures of the managed deployment into Test reproducible instead of a one-time check."""
+    components = client.get(f"RetrieveAppComponents(AppModuleId={app_id})")["value"]
+    held = {str(c["objectid"]).lower() for c in components if c["componenttype"] == TABLE_COMPONENT_TYPE}
+    return [f"App-Komponente {unique}: Tabelle {table}" for table, metadata_id in table_ids.items() if metadata_id.lower() not in held]
+
+
 def run_verify(client: DataverseClient, settings: Settings, defs: Definitions, expect_seed: bool = True) -> list[str]:
     """Human-readable deviations from the definitions (and the seed CSVs); an empty list means everything matches.
 
-    `expect_seed=False` checks the solution components only: tables, columns, choices, relationships, roles, the column security profile
-    and the app module. Business units, owner teams, their membership and the seed are not solution components, so an environment that
-    only received the managed solution (Nordstern Test, `deploy-test.yml`) has none of them (ADR-003)."""
+    `expect_seed=False` checks the solution components only: tables, columns, choices, relationships, roles, the column security profile,
+    the app module and that the tables are components of the app. Business units, owner teams, their membership and the seed are not
+    solution components, so an environment that only received the managed solution (Nordstern Test, `deploy-test.yml`) has none of them
+    (ADR-003)."""
     problems = []
-    entities = {e["LogicalName"] for e in client.get("EntityDefinitions", {"$select": "LogicalName"})["value"]}
+    entities = {e["LogicalName"]: e["MetadataId"] for e in client.get("EntityDefinitions", {"$select": "LogicalName,MetadataId"})["value"]}
     missing_tables = set()
     for t in defs.tables:
         if t.schema not in entities:
@@ -62,7 +74,11 @@ def run_verify(client: DataverseClient, settings: Settings, defs: Definitions, e
     roles = {r["name"] for r in client.get_all("roles", {"$select": "name"})}
     problems += [f"Rolle {r.name}" for r in defs.security.roles if r.name not in roles]
     problems += _column_security(client, defs)
-    if not find_app_module(client, app_unique_name(settings, defs)):
+    unique = app_unique_name(settings, defs)
+    app_id = find_app_module(client, unique)
+    if app_id:
+        problems += _app_table_components(client, app_id, unique, {t.schema: entities[t.schema] for t in defs.tables if t.schema in entities})
+    else:
         problems.append("App-Modul")
     if expect_seed:
         bus = {b["name"] for b in client.get("businessunits", {"$select": "name"})["value"]}

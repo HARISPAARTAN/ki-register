@@ -22,19 +22,19 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v5
-      - uses: microsoft/powerplatform-actions/actions-install@v1
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: microsoft/powerplatform-actions/actions-install@6e91314a9c6e694ea5c894fe8c40e09d73aa892b # v1
       - run: mkdir -p dist
 
       - name: Managed packen
-        uses: microsoft/powerplatform-actions/pack-solution@v1
+        uses: microsoft/powerplatform-actions/pack-solution@6e91314a9c6e694ea5c894fe8c40e09d73aa892b # v1
         with:
           solution-folder: solution/src
           solution-file: dist/NordsternKIRegister_managed.zip
           solution-type: Managed
 
       - name: Nach Test importieren
-        uses: microsoft/powerplatform-actions/import-solution@v1
+        uses: microsoft/powerplatform-actions/import-solution@6e91314a9c6e694ea5c894fe8c40e09d73aa892b # v1
         with:
           environment-url: ${{ secrets.DATAVERSE_URL_TEST }}
           app-id: ${{ secrets.CLIENT_ID }}
@@ -45,7 +45,7 @@ jobs:
           publish-changes: true
           skip-dependency-check: false
 
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - run: uv sync --locked
       - name: Prüfen (nur Lösungskomponenten)
         env:

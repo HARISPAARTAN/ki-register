@@ -3,6 +3,8 @@ name: Lösung exportieren
 # Exportiert die Lösung NordsternKIRegister aus Nordstern Dev (unmanaged und managed), entpackt sie nach solution/src und
 # öffnet einen Pull Request. Die Eigentümerin oder der Eigentümer prüft den Diff und führt den Pull Request zusammen.
 # Das Power Platform CLI (pac) läuft nur hier auf dem Runner, nie auf dem Rechner der Eigentümerin oder des Eigentümers.
+# Aktionen von Dritten sind auf einen Commit-SHA festgelegt, der Tag steht als Kommentar dahinter. Für microsoft/powerplatform-actions
+# ist es der Stand, den der Tag v1 am 2026-10-25 hatte: v1 liegt drei Commits vor dem letzten Release v1.9.2 (PAC 2.8.1 statt 2.7.4).
 
 on:
   workflow_dispatch:
@@ -23,12 +25,16 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v5
-      - uses: microsoft/powerplatform-actions/actions-install@v1
+      # Der Job hat Schreibrechte: das Token soll nicht in .git/config liegen bleiben, wo die folgenden Aktionen es lesen könnten.
+      # create-pull-request meldet sich zum Schieben mit seiner eigenen Eingabe token an.
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: microsoft/powerplatform-actions/actions-install@6e91314a9c6e694ea5c894fe8c40e09d73aa892b # v1
       - run: mkdir -p dist
 
       - name: Unmanaged exportieren
-        uses: microsoft/powerplatform-actions/export-solution@v1
+        uses: microsoft/powerplatform-actions/export-solution@6e91314a9c6e694ea5c894fe8c40e09d73aa892b # v1
         with:
           environment-url: ${{ secrets.DATAVERSE_URL_DEV }}
           app-id: ${{ secrets.CLIENT_ID }}
@@ -39,7 +45,7 @@ jobs:
           managed: false
 
       - name: Managed exportieren
-        uses: microsoft/powerplatform-actions/export-solution@v1
+        uses: microsoft/powerplatform-actions/export-solution@6e91314a9c6e694ea5c894fe8c40e09d73aa892b # v1
         with:
           environment-url: ${{ secrets.DATAVERSE_URL_DEV }}
           app-id: ${{ secrets.CLIENT_ID }}
@@ -51,7 +57,7 @@ jobs:
 
       # solution-type Both braucht beide Archive im selben Ordner
       - name: Nach solution/src entpacken
-        uses: microsoft/powerplatform-actions/unpack-solution@v1
+        uses: microsoft/powerplatform-actions/unpack-solution@6e91314a9c6e694ea5c894fe8c40e09d73aa892b # v1
         with:
           solution-file: dist/NordsternKIRegister.zip
           solution-folder: solution/src
@@ -60,7 +66,7 @@ jobs:
 
       # add-paths: nur solution/src kommt in den Commit, nie dist/ (Archive) oder anderes
       - name: Pull Request öffnen
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           add-paths: solution/src
           branch: export/solution-${{ github.run_number }}

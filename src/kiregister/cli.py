@@ -86,7 +86,8 @@ def verify(env: EnvOpt = "dev") -> None:
     """Pruefen, ob Metadaten, Sicherheit, App und Seed dem Soll entsprechen; Exit-Code 1 bei Abweichung.
 
     Mit KIREGISTER_VERIFY_NO_SEED=1 werden nur Loesungskomponenten geprueft (Tabellen, Spalten, Auswahlfelder, Beziehungen, Rollen,
-    Spaltensicherheitsprofil, App-Modul), nicht Unternehmenseinheiten, Besitzerteams und Seed: die Testumgebung erhaelt nur die Loesung."""
+    Spaltensicherheitsprofil, App-Modul und dessen Tabellenkomponenten), nicht Unternehmenseinheiten, Besitzerteams und Seed: die
+    Testumgebung erhaelt nur die Loesung."""
     from .verify import run_verify
     expect_seed = os.environ.get(NO_SEED_VARIABLE, "").strip().lower() not in ("1", "true", "yes")
     client, settings, defs = _client(env)
