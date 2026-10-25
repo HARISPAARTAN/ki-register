@@ -1,0 +1,92 @@
+# lookup.schema is the Pascal-cased schema name sent to Dataverse; the logical name is its lower-case form.
+
+[[relationship]]
+schema = "nst_organisation_mitarbeiter"
+referenced = "nst_organisation"
+referencing = "nst_mitarbeiter"
+lookup = { schema = "nst_Organisation", display = "Organisation", required = true }
+delete = "RemoveLink"
+
+[[relationship]]
+schema = "nst_organisation_kisystem"
+referenced = "nst_organisation"
+referencing = "nst_kisystem"
+lookup = { schema = "nst_Organisation", display = "Organisation", required = true }
+delete = "RemoveLink"
+
+[[relationship]]
+schema = "nst_organisation_anwendungsfall"
+referenced = "nst_organisation"
+referencing = "nst_anwendungsfall"
+lookup = { schema = "nst_Organisation", display = "Organisation", required = true }
+delete = "RemoveLink"
+
+[[relationship]]
+schema = "nst_organisation_schulung"
+referenced = "nst_organisation"
+referencing = "nst_schulung"
+lookup = { schema = "nst_Organisation", display = "Organisation", required = true }
+delete = "RemoveLink"
+
+[[relationship]]
+schema = "nst_mitarbeiter_kisystem_verantwortlicher"
+referenced = "nst_mitarbeiter"
+referencing = "nst_kisystem"
+lookup = { schema = "nst_Verantwortlicher", display = "Verantwortlich" }
+delete = "RemoveLink"
+
+[[relationship]]
+schema = "nst_mitarbeiter_anwendungsfall_antragsteller"
+referenced = "nst_mitarbeiter"
+referencing = "nst_anwendungsfall"
+lookup = { schema = "nst_Antragsteller", display = "Antragsteller" }
+delete = "RemoveLink"
+
+[[relationship]]
+schema = "nst_mitarbeiter_risikobewertung_pruefer"
+referenced = "nst_mitarbeiter"
+referencing = "nst_risikobewertung"
+lookup = { schema = "nst_Pruefer", display = "Prüfer" }
+delete = "RemoveLink"
+
+[[relationship]]
+schema = "nst_mitarbeiter_massnahme_verantwortlicher"
+referenced = "nst_mitarbeiter"
+referencing = "nst_massnahme"
+lookup = { schema = "nst_Verantwortlicher", display = "Verantwortlich" }
+delete = "RemoveLink"
+
+[[relationship]]
+schema = "nst_kisystem_risikobewertung"
+referenced = "nst_kisystem"
+referencing = "nst_risikobewertung"
+lookup = { schema = "nst_KISystem", display = "KI-System", required = true }
+delete = "Restrict"
+
+[[relationship]]
+schema = "nst_kisystem_massnahme"
+referenced = "nst_kisystem"
+referencing = "nst_massnahme"
+lookup = { schema = "nst_KISystem", display = "KI-System", required = true }
+delete = "Restrict"
+
+[[relationship]]
+schema = "nst_kisystem_anwendungsfall"
+referenced = "nst_kisystem"
+referencing = "nst_anwendungsfall"
+lookup = { schema = "nst_KISystem", display = "KI-System" }
+delete = "RemoveLink"
+
+[[relationship]]
+schema = "nst_schulung_teilnahme"
+referenced = "nst_schulung"
+referencing = "nst_schulungsteilnahme"
+lookup = { schema = "nst_Schulung", display = "Schulung", required = true }
+delete = "Cascade"
+
+[[relationship]]
+schema = "nst_mitarbeiter_teilnahme"
+referenced = "nst_mitarbeiter"
+referencing = "nst_schulungsteilnahme"
+lookup = { schema = "nst_Mitarbeiter", display = "Mitarbeiter", required = true }
+delete = "Cascade"

@@ -1,0 +1,33 @@
+business_units = ["Nordstern Projektmanagement", "Nordstern Energie", "Nordstern Klinikum"]
+
+[[role]]
+name = "nst KI-Governance"
+[role.tables]
+"*" = { create = "Global", read = "Global", write = "Global", delete = "Global", append = "Global", appendto = "Global", assign = "Global", share = "Global" }
+
+[[role]]
+name = "nst Fachbereich"
+[role.tables]
+nst_kisystem = { read = "Local", appendto = "Local" }
+nst_massnahme = { read = "Local" }
+nst_schulung = { read = "Local" }
+nst_schulungsteilnahme = { read = "Local" }
+nst_mitarbeiter = { read = "Local", appendto = "Local" }
+nst_organisation = { read = "Global", appendto = "Global" }
+nst_anwendungsfall = { create = "Basic", read = "Basic", write = "Basic", append = "Basic" }
+
+[[role]]
+name = "nst Leser"
+[role.tables]
+nst_kisystem = { read = "Local" }
+nst_massnahme = { read = "Local" }
+nst_schulung = { read = "Local" }
+nst_schulungsteilnahme = { read = "Local" }
+nst_mitarbeiter = { read = "Local" }
+nst_organisation = { read = "Global" }
+nst_anwendungsfall = { read = "Local" }
+
+[column_security]
+profile = "nst KI-Governance Felder"
+columns = [{ table = "nst_kisystem", column = "nst_internebewertung" }]
+roles_with_access = ["nst KI-Governance"]

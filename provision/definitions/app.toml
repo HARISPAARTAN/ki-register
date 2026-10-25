@@ -1,0 +1,118 @@
+[app]
+unique_name = "nst_kiregister"
+display = "KI-Register"
+description = "Register der KI-Systeme der Nordstern Gruppe (fiktiv, keine Rechtsberatung)"
+
+[[area]]
+id = "register"
+title = "Register"
+tables = ["nst_kisystem", "nst_anwendungsfall", "nst_risikobewertung", "nst_massnahme"]
+
+[[area]]
+id = "schulungen"
+title = "Schulungen"
+tables = ["nst_schulung", "nst_schulungsteilnahme"]
+
+[[area]]
+id = "stammdaten"
+title = "Stammdaten"
+tables = ["nst_organisation", "nst_mitarbeiter"]
+
+[[area]]
+id = "uebersicht"
+title = "Übersicht"
+dashboard = "KI-Register Übersicht"
+
+[[view]]
+table = "nst_kisystem"
+name = "Aktive KI-Systeme"
+default = true
+columns = ["nst_kennung", "nst_name", "nst_organisation", "nst_risikoklasse", "nst_status", "nst_naechstepruefung", "nst_verantwortlicher"]
+filter = [{ column = "nst_status", op = "in", values = ["Freigegeben", "In Betrieb", "Ausgesetzt"] }]
+order = ["nst_naechstepruefung"]
+
+[[view]]
+table = "nst_kisystem"
+name = "Hochrisiko-Systeme"
+columns = ["nst_kennung", "nst_name", "nst_organisation", "nst_anhang3kategorie", "nst_status", "nst_naechstepruefung", "nst_verantwortlicher"]
+filter = [{ column = "nst_risikoklasse", op = "in", values = ["Hoch", "Unannehmbar (Art. 5)"] }]
+order = ["nst_organisation"]
+
+[[view]]
+table = "nst_kisystem"
+name = "Prüfung überfällig"
+columns = ["nst_kennung", "nst_name", "nst_organisation", "nst_risikoklasse", "nst_naechstepruefung", "nst_verantwortlicher"]
+filter = [{ column = "nst_status", op = "eq", values = ["In Betrieb"] }, { column = "nst_naechstepruefung", op = "olderthan-x-days", values = ["1"] }]
+order = ["nst_naechstepruefung"]
+
+[[view]]
+table = "nst_kisystem"
+name = "Nach Organisation"
+columns = ["nst_organisation", "nst_kennung", "nst_name", "nst_risikoklasse", "nst_status"]
+order = ["nst_organisation", "nst_name"]
+
+[[view]]
+table = "nst_kisystem"
+name = "Mit Transparenzpflicht"
+columns = ["nst_kennung", "nst_name", "nst_organisation", "nst_status"]
+filter = [{ column = "nst_transparenzpflicht", op = "eq", values = ["1"] }]
+
+[[view]]
+table = "nst_anwendungsfall"
+name = "Offene Anträge"
+default = true
+columns = ["nst_kennung", "nst_name", "nst_organisation", "nst_antragsteller", "nst_status", "nst_gewuenschterstart"]
+filter = [{ column = "nst_status", op = "in", values = ["Eingereicht", "In Prüfung"] }]
+order = ["nst_gewuenschterstart"]
+
+[[view]]
+table = "nst_massnahme"
+name = "Offene Maßnahmen"
+default = true
+columns = ["nst_kennung", "nst_name", "nst_kisystem", "nst_typ", "nst_verantwortlicher", "nst_faelligam", "nst_status"]
+filter = [{ column = "nst_status", op = "in", values = ["Offen", "In Arbeit"] }]
+order = ["nst_faelligam"]
+
+[[view]]
+table = "nst_massnahme"
+name = "Überfällige Maßnahmen"
+columns = ["nst_kennung", "nst_name", "nst_kisystem", "nst_verantwortlicher", "nst_faelligam"]
+filter = [{ column = "nst_status", op = "in", values = ["Offen", "In Arbeit"] }, { column = "nst_faelligam", op = "olderthan-x-days", values = ["1"] }]
+
+[[form]]
+table = "nst_kisystem"
+name = "KI-System Hauptformular"
+tabs = [
+  { name = "Allgemein", sections = [["nst_kennung", "nst_name", "nst_organisation", "nst_fachbereich", "nst_verantwortlicher", "nst_anbieter", "nst_systemtyp", "nst_rolle", "nst_status"], ["nst_zweck", "nst_beschreibung", "nst_dokumentation"]] },
+  { name = "Einstufung", sections = [["nst_risikoklasse", "nst_anhang3kategorie", "nst_transparenzpflicht", "nst_eudatenbank", "nst_datenarten"], ["nst_inbetriebnahme", "nst_letztepruefung", "nst_naechstepruefung", "nst_pruefungueberfaellig"]] },
+  { name = "Verlauf", subgrids = [{ table = "nst_risikobewertung", view = "Aktive Risikobewertungen", lookup = "nst_kisystem" }, { table = "nst_massnahme", view = "Offene Maßnahmen", lookup = "nst_kisystem" }] },
+  { name = "Intern", sections = [["nst_internebewertung"]] }
+]
+
+[[chart]]
+table = "nst_kisystem"
+name = "KI-Systeme nach Risikoklasse"
+kind = "column"
+groupby = "nst_risikoklasse"
+series = "nst_organisation"
+
+[[chart]]
+table = "nst_massnahme"
+name = "Maßnahmen nach Status"
+kind = "pie"
+groupby = "nst_status"
+
+[[chart]]
+table = "nst_anwendungsfall"
+name = "Anwendungsfälle nach Status"
+kind = "column"
+groupby = "nst_status"
+
+[dashboard]
+name = "KI-Register Übersicht"
+components = [
+  { chart = "KI-Systeme nach Risikoklasse", table = "nst_kisystem", view = "Aktive KI-Systeme" },
+  { list = "Prüfung überfällig", table = "nst_kisystem" },
+  { chart = "Maßnahmen nach Status", table = "nst_massnahme", view = "Offene Maßnahmen" },
+  { chart = "Anwendungsfälle nach Status", table = "nst_anwendungsfall", view = "Offene Anträge" }
+]

@@ -1,0 +1,383 @@
+[[table]]
+schema = "nst_organisation"
+display = "Organisation"
+plural = "Organisationen"
+primary = { schema = "nst_name", display = "Name", length = 200 }
+audit = false
+
+  [[table.column]]
+  schema = "nst_kurzname"
+  display = "Kurzname"
+  type = "string"
+  length = 50
+
+  [[table.column]]
+  schema = "nst_branche"
+  display = "Branche"
+  type = "string"
+  length = 100
+
+  [[table.column]]
+  schema = "nst_businessunitname"
+  display = "Business-Unit-Name"
+  type = "string"
+  length = 100
+
+  [[table.column]]
+  schema = "nst_sitz"
+  display = "Sitz"
+  type = "string"
+  length = 100
+
+[[table]]
+schema = "nst_mitarbeiter"
+display = "Mitarbeiter"
+plural = "Mitarbeiter"
+primary = { schema = "nst_name", display = "Name", length = 200 }
+audit = false
+
+  [[table.column]]
+  schema = "nst_funktion"
+  display = "Funktion"
+  type = "string"
+  length = 100
+
+  [[table.column]]
+  schema = "nst_email"
+  display = "E-Mail"
+  type = "email"
+
+  [[table.column]]
+  schema = "nst_kiverantwortlich"
+  display = "KI-verantwortlich"
+  type = "bool"
+
+[[table]]
+schema = "nst_kisystem"
+display = "KI-System"
+plural = "KI-Systeme"
+primary = { schema = "nst_name", display = "Name", length = 200 }
+audit = true
+
+  [[table.column]]
+  schema = "nst_kennung"
+  display = "Kennung"
+  type = "autonumber"
+  format = "KIS-{SEQNUM:4}"
+
+  [[table.column]]
+  schema = "nst_fachbereich"
+  display = "Fachbereich"
+  type = "string"
+  length = 100
+
+  [[table.column]]
+  schema = "nst_beschreibung"
+  display = "Beschreibung"
+  type = "memo"
+  length = 4000
+
+  [[table.column]]
+  schema = "nst_zweck"
+  display = "Zweck"
+  type = "memo"
+  length = 2000
+
+  [[table.column]]
+  schema = "nst_anbieter"
+  display = "Anbieter / Hersteller"
+  type = "string"
+  length = 200
+
+  [[table.column]]
+  schema = "nst_systemtyp"
+  display = "Systemtyp"
+  type = "choice"
+  choice = "nst_systemtyp"
+
+  [[table.column]]
+  schema = "nst_rolle"
+  display = "Rolle nach KI-Verordnung"
+  type = "choice"
+  choice = "nst_rolle_kivo"
+
+  [[table.column]]
+  schema = "nst_status"
+  display = "Status"
+  type = "choice"
+  choice = "nst_status_kisystem"
+  required = true
+
+  [[table.column]]
+  schema = "nst_inbetriebnahme"
+  display = "Inbetriebnahme"
+  type = "date"
+
+  [[table.column]]
+  schema = "nst_letztepruefung"
+  display = "Letzte Prüfung"
+  type = "date"
+
+  [[table.column]]
+  schema = "nst_naechstepruefung"
+  display = "Nächste Prüfung"
+  type = "date"
+
+  [[table.column]]
+  schema = "nst_datenarten"
+  display = "Verarbeitete Datenarten"
+  type = "multichoice"
+  choice = "nst_datenart"
+
+  [[table.column]]
+  schema = "nst_risikoklasse"
+  display = "Risikoklasse"
+  type = "choice"
+  choice = "nst_risikoklasse"
+
+  [[table.column]]
+  schema = "nst_anhang3kategorie"
+  display = "Anhang-III-Kategorie"
+  type = "choice"
+  choice = "nst_anhang3_kategorie"
+
+  [[table.column]]
+  schema = "nst_transparenzpflicht"
+  display = "Transparenzpflicht (Art. 50)"
+  type = "bool"
+
+  [[table.column]]
+  schema = "nst_eudatenbank"
+  display = "Registrierung EU-Datenbank (Art. 49)"
+  type = "bool"
+
+  [[table.column]]
+  schema = "nst_dokumentation"
+  display = "Dokumentation (Link)"
+  type = "url"
+
+  [[table.column]]
+  schema = "nst_internebewertung"
+  display = "Interne Bewertung"
+  type = "memo"
+  length = 4000
+  secured = true
+
+  [[table.column]]
+  schema = "nst_pruefungueberfaellig"
+  display = "Prüfung überfällig"
+  type = "formula"
+  result = "bool"
+  formula = "nst_status = 'Status KI-System'.'In Betrieb' && !IsBlank(nst_naechstepruefung) && nst_naechstepruefung < Today()"
+
+[[table]]
+schema = "nst_anwendungsfall"
+display = "Anwendungsfall"
+plural = "Anwendungsfälle"
+primary = { schema = "nst_name", display = "Name", length = 200 }
+audit = true
+
+  [[table.column]]
+  schema = "nst_kennung"
+  display = "Kennung"
+  type = "autonumber"
+  format = "AF-{SEQNUM:4}"
+
+  [[table.column]]
+  schema = "nst_beschreibung"
+  display = "Beschreibung"
+  type = "memo"
+  length = 4000
+
+  [[table.column]]
+  schema = "nst_zweck"
+  display = "Zweck"
+  type = "memo"
+  length = 2000
+
+  [[table.column]]
+  schema = "nst_betroffene"
+  display = "Betroffene"
+  type = "string"
+  length = 300
+
+  [[table.column]]
+  schema = "nst_datenarten"
+  display = "Verarbeitete Datenarten"
+  type = "multichoice"
+  choice = "nst_datenart"
+
+  [[table.column]]
+  schema = "nst_gewuenschterstart"
+  display = "Gewünschter Start"
+  type = "date"
+
+  [[table.column]]
+  schema = "nst_status"
+  display = "Status"
+  type = "choice"
+  choice = "nst_status_anwendungsfall"
+  required = true
+
+  [[table.column]]
+  schema = "nst_entscheidung"
+  display = "Entscheidung"
+  type = "memo"
+  length = 2000
+
+  [[table.column]]
+  schema = "nst_entschiedenam"
+  display = "Entschieden am"
+  type = "datetime"
+
+[[table]]
+schema = "nst_risikobewertung"
+display = "Risikobewertung"
+plural = "Risikobewertungen"
+primary = { schema = "nst_name", display = "Name", length = 200 }
+audit = true
+
+  [[table.column]]
+  schema = "nst_kennung"
+  display = "Kennung"
+  type = "autonumber"
+  format = "RB-{SEQNUM:4}"
+
+  [[table.column]]
+  schema = "nst_datum"
+  display = "Datum"
+  type = "date"
+  required = true
+
+  [[table.column]]
+  schema = "nst_art5verbotenepraxis"
+  display = "Verbotene Praxis (Art. 5)"
+  type = "bool"
+
+  [[table.column]]
+  schema = "nst_anhang3treffer"
+  display = "Anhang-III-Treffer"
+  type = "bool"
+
+  [[table.column]]
+  schema = "nst_anhang3kategorie"
+  display = "Anhang-III-Kategorie"
+  type = "choice"
+  choice = "nst_anhang3_kategorie"
+
+  [[table.column]]
+  schema = "nst_ausnahmeart6abs3"
+  display = "Ausnahme (Art. 6 Abs. 3)"
+  type = "bool"
+
+  [[table.column]]
+  schema = "nst_art50transparenz"
+  display = "Transparenzpflicht (Art. 50)"
+  type = "bool"
+
+  [[table.column]]
+  schema = "nst_ergebnis"
+  display = "Ergebnis"
+  type = "choice"
+  choice = "nst_risikoklasse"
+  required = true
+
+  [[table.column]]
+  schema = "nst_begruendung"
+  display = "Begründung"
+  type = "memo"
+  length = 4000
+
+  [[table.column]]
+  schema = "nst_gueltigbis"
+  display = "Gültig bis"
+  type = "date"
+
+[[table]]
+schema = "nst_massnahme"
+display = "Maßnahme"
+plural = "Maßnahmen"
+primary = { schema = "nst_name", display = "Name", length = 200 }
+audit = false
+
+  [[table.column]]
+  schema = "nst_kennung"
+  display = "Kennung"
+  type = "autonumber"
+  format = "MN-{SEQNUM:4}"
+
+  [[table.column]]
+  schema = "nst_typ"
+  display = "Typ"
+  type = "choice"
+  choice = "nst_massnahme_typ"
+
+  [[table.column]]
+  schema = "nst_beschreibung"
+  display = "Beschreibung"
+  type = "memo"
+  length = 2000
+
+  [[table.column]]
+  schema = "nst_faelligam"
+  display = "Fällig am"
+  type = "date"
+
+  [[table.column]]
+  schema = "nst_status"
+  display = "Status"
+  type = "choice"
+  choice = "nst_massnahme_status"
+
+  [[table.column]]
+  schema = "nst_artikelbezug"
+  display = "Artikelbezug"
+  type = "string"
+  length = 100
+
+[[table]]
+schema = "nst_schulung"
+display = "Schulung"
+plural = "Schulungen"
+primary = { schema = "nst_name", display = "Name", length = 200 }
+audit = false
+
+  [[table.column]]
+  schema = "nst_datum"
+  display = "Datum"
+  type = "date"
+
+  [[table.column]]
+  schema = "nst_dauerminuten"
+  display = "Dauer (Minuten)"
+  type = "int"
+
+  [[table.column]]
+  schema = "nst_inhalt"
+  display = "Inhalt"
+  type = "memo"
+  length = 2000
+
+  [[table.column]]
+  schema = "nst_zielgruppe"
+  display = "Zielgruppe"
+  type = "string"
+  length = 200
+
+[[table]]
+schema = "nst_schulungsteilnahme"
+display = "Schulungsteilnahme"
+plural = "Teilnahmen"
+primary = { schema = "nst_name", display = "Name", length = 200 }
+audit = false
+
+  [[table.column]]
+  schema = "nst_status"
+  display = "Status"
+  type = "choice"
+  choice = "nst_schulung_status"
+
+  [[table.column]]
+  schema = "nst_abgeschlossenam"
+  display = "Abgeschlossen am"
+  type = "date"

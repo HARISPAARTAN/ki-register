@@ -1,0 +1,49 @@
+[[choice]]
+schema = "nst_risikoklasse"
+display = "Risikoklasse"
+values = ["Nicht bewertet", "Unannehmbar (Art. 5)", "Hoch", "Begrenzt (Transparenzpflicht)", "Minimal"]
+
+[[choice]]
+schema = "nst_rolle_kivo"
+display = "Rolle nach KI-Verordnung"
+values = ["Anbieter", "Betreiber", "Einführer", "Händler", "Produkthersteller", "Bevollmächtigter"]
+
+[[choice]]
+schema = "nst_systemtyp"
+display = "Systemtyp"
+values = ["Eigenentwicklung", "Eingekaufte Standardsoftware", "KI-Modell mit allgemeinem Verwendungszweck (GPAI)", "In Produkt eingebettet"]
+
+[[choice]]
+schema = "nst_status_kisystem"
+display = "Status KI-System"
+values = ["Idee", "In Bewertung", "Freigegeben", "In Betrieb", "Ausgesetzt", "Eingestellt", "Abgelehnt"]
+
+[[choice]]
+schema = "nst_status_anwendungsfall"
+display = "Status Anwendungsfall"
+values = ["Eingereicht", "In Prüfung", "Genehmigt", "Abgelehnt", "Zurückgezogen"]
+
+[[choice]]
+schema = "nst_anhang3_kategorie"
+display = "Anhang-III-Kategorie"
+values = ["Keine", "1 Biometrie", "2 Kritische Infrastruktur", "3 Bildung", "4 Beschäftigung", "5 Grundlegende Dienste", "6 Strafverfolgung", "7 Migration und Grenze", "8 Justiz und Demokratie"]
+
+[[choice]]
+schema = "nst_datenart"
+display = "Datenart"
+values = ["Personenbezogene Daten", "Besondere Kategorien (Art. 9 DSGVO)", "Beschäftigtendaten", "Patientendaten", "Kundendaten", "Betriebs- und Sensordaten", "Keine personenbezogenen Daten"]
+
+[[choice]]
+schema = "nst_massnahme_typ"
+display = "Maßnahmentyp"
+values = ["Technisch", "Organisatorisch", "Dokumentation", "Schulung", "Vertraglich"]
+
+[[choice]]
+schema = "nst_massnahme_status"
+display = "Maßnahmenstatus"
+values = ["Offen", "In Arbeit", "Erledigt", "Entfallen"]
+
+[[choice]]
+schema = "nst_schulung_status"
+display = "Schulungsstatus"
+values = ["Geplant", "Abgeschlossen", "Überfällig"]
