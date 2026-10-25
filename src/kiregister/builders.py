@@ -180,7 +180,9 @@ def _braced(guid: str) -> str:
 def _subgrid_section(g: Subgrid, ti: int, gi: int, defs: Definitions, view_ids: dict[tuple[str, str], str] | None) -> str:
     rel = defs.relationship_for(g.table, g.lookup)
     target = defs.table(g.table)
-    view_id = _braced(view_ids[(g.table, g.view)]) if view_ids and (g.table, g.view) in view_ids else None
+    if view_ids is not None and (g.table, g.view) not in view_ids:
+        raise KeyError(f"Ansicht {g.view!r} fuer {g.table!r} (Unterliste) fehlt in view_ids")
+    view_id = _braced(view_ids[(g.table, g.view)]) if view_ids is not None else None
     view_xml = f"<ViewId>{view_id or ZERO_GUID}</ViewId>" + (f"<ViewIds>{view_id}</ViewIds>" if view_id else "<ViewIds />")
     grid = (f'<row><cell id="{_guid("grid", ti, gi, g.table)}" rowspan="8" showlabel="true">{_labels(target.plural, target.plural_en)}'
             f'<control id="grid_{g.table}_{gi}" classid="{{E7A81278-8635-4d9e-8D4D-59480B391C5B}}"><parameters>'
@@ -226,7 +228,7 @@ def chart_xml(chart: Chart, defs: Definitions) -> tuple[str, str]:
     """Return (data definition XML, presentation XML) for a count-by-group chart, optionally stacked by a second group."""
     t = defs.table(chart.table)
     series_attr = f'<attribute name="{chart.series}" groupby="true" alias="groupby_series" />' if chart.series else ""
-    series_cat = '<category alias="groupby_series" />' if chart.series else ""
+    series_cat = ""
     data = (f'<datadefinition><fetchcollection><fetch mapping="logical" aggregate="true"><entity name="{t.schema}">'
             f'<attribute name="{t.schema}id" alias="count" aggregate="count" />'
             f'<attribute name="{chart.groupby}" groupby="true" alias="groupby_col" />{series_attr}'

@@ -21,10 +21,18 @@ def col(name):
 
 
 def test_subgrid_view_id_is_taken_from_view_ids():
-    xml = builders.form_xml(ki_form(), D, {("nst_risikobewertung", "Aktive Risikobewertungen"): "0a1b2c3d-1111-2222-3333-444455556666"})
-    assert "<ViewId>{0A1B2C3D-1111-2222-3333-444455556666}</ViewId>" in xml
-    assert xml.count(ZERO_VIEW) == 1  # the Massnahmen grid was given no id
+    ids = {("nst_risikobewertung", "Aktive Risikobewertungen"): "0a1b2c3d-1111-2222-3333-444455556666",
+           ("nst_massnahme", "Offene Maßnahmen"): "0a1b2c3d-1111-2222-3333-444455557777"}
+    xml = builders.form_xml(ki_form(), D, ids)
+    assert "<ViewId>{0A1B2C3D-1111-2222-3333-444455556666}</ViewId>" in xml and "<ViewId>{0A1B2C3D-1111-2222-3333-444455557777}</ViewId>" in xml
+    assert ZERO_VIEW not in xml
     assert builders.form_xml(ki_form(), D).count(ZERO_VIEW) == 2
+
+
+def test_missing_view_id_for_a_subgrid_raises():
+    import pytest
+    with pytest.raises(KeyError, match="Offene Maßnahmen"):
+        builders.form_xml(ki_form(), D, {("nst_risikobewertung", "Aktive Risikobewertungen"): "0a1b2c3d-1111-2222-3333-444455556666"})
 
 
 def test_form_labels_are_bilingual():
@@ -108,3 +116,10 @@ def test_relationship_menu_has_no_label_so_english_base_orgs_accept_it():
     for rel in defs.relationships:
         menu = builders.relationship_payload(rel)["AssociatedMenuConfiguration"]
         assert menu["Behavior"] == "UseCollectionName" and "Label" not in menu
+
+
+def test_stacked_chart_has_two_groupbys_but_one_category():
+    """The Web API rejects a second <category> (needs a measurecollection, then 'more than two Group By clauses')."""
+    stacked = next(c for c in D.app.charts if c.series)
+    data, _ = builders.chart_xml(stacked, D)
+    assert data.count('groupby="true"') == 2 and data.count("<category ") == 1
