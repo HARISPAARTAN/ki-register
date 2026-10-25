@@ -17,7 +17,7 @@ from .definitions import load_definitions
 
 app = typer.Typer(help="Nordstern KI-Register: Dataverse-Provisionierung als Code.", no_args_is_help=True)
 EnvOpt = Annotated[str, typer.Option("--env", help="Umgebung aus config.toml: dev oder test")]
-ONLY_CHOICES = ("metadata", "security", "app")
+ONLY_CHOICES = ("metadata", "security", "app", "auditing")
 NO_SEED_VARIABLE = "KIREGISTER_VERIFY_NO_SEED"  # "1": verify checks solution components only (deploy-test.yml)
 
 
@@ -52,8 +52,11 @@ def bootstrap(env: EnvOpt = "dev") -> None:
 
 
 @app.command()
-def apply(env: EnvOpt = "dev", only: Annotated[str | None, typer.Option("--only", help="metadata | security | app")] = None) -> None:
-    """Metadaten, Sicherheit und App anlegen oder aktualisieren (idempotent)."""
+def apply(env: EnvOpt = "dev", only: Annotated[str | None, typer.Option("--only", help="metadata | security | app | auditing")] = None) -> None:
+    """Metadaten, Sicherheit, App und Auditing anlegen oder aktualisieren (idempotent); das volle apply schaltet das Auditing zuletzt ein.
+
+    Gegen Test laeuft nur `apply --only auditing`: Es schaltet das Auditing der Umgebung ein (Organisationseinstellung isauditenabled, keine
+    Loesungskomponente) und beruehrt nichts anderes. Alles andere erhaelt Test mit der verwalteten Loesung (ADR-003)."""
     if only is not None and only not in ONLY_CHOICES:
         raise typer.BadParameter(f"--only muss einer von {', '.join(ONLY_CHOICES)} sein", param_hint="--only")
     client, settings, defs = _client(env)
@@ -65,6 +68,9 @@ def apply(env: EnvOpt = "dev", only: Annotated[str | None, typer.Option("--only"
     if only in (None, "app"):
         from .app import apply_app
         typer.echo(f"app: {apply_app(client, settings, defs)}")
+    if only in (None, "auditing"):
+        from .auditing import ensure_auditing
+        typer.echo("auditing: eingeschaltet" if ensure_auditing(client) else "auditing: war bereits eingeschaltet")
 
 
 @app.command()
@@ -83,11 +89,11 @@ def seed(env: EnvOpt = "dev", stichtag: Annotated[str | None, typer.Option("--st
 
 @app.command()
 def verify(env: EnvOpt = "dev") -> None:
-    """Pruefen, ob Metadaten, Sicherheit, App und Seed dem Soll entsprechen; Exit-Code 1 bei Abweichung.
+    """Pruefen, ob Metadaten, Sicherheit, App, Auditing der Umgebung und Seed dem Soll entsprechen; Exit-Code 1 bei Abweichung.
 
     Mit KIREGISTER_VERIFY_NO_SEED=1 werden nur Loesungskomponenten geprueft (Tabellen, Spalten, Auswahlfelder, Beziehungen, Rollen,
     Spaltensicherheitsprofil, App-Modul und dessen Tabellenkomponenten), nicht Unternehmenseinheiten, Besitzerteams und Seed: die
-    Testumgebung erhaelt nur die Loesung."""
+    Testumgebung erhaelt nur die Loesung. Der Auditing-Schalter der Umgebung wird in beiden Modi geprueft (`apply --only auditing`)."""
     from .verify import run_verify
     expect_seed = os.environ.get(NO_SEED_VARIABLE, "").strip().lower() not in ("1", "true", "yes")
     client, settings, defs = _client(env)

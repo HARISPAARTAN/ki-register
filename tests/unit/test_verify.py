@@ -21,6 +21,7 @@ PROFILE = DEFS.security.column_security.profile
 APP_ID = "a1"
 APP_UNIQUE = "nst_kiregister"
 SEED_PARAMETERS = {"skip_unit", "skip_team", "counts", "team_members", "role_holders"}
+AUDIT_OFF = "Umgebungs-Auditing ist ausgeschaltet (organizations.isauditenabled)"
 
 
 class Tokens:
@@ -33,8 +34,9 @@ def metadata_id(table):
 
 
 def mock_solution(skip_table=None, skip_attribute=None, skip_choice=None, skip_relationship=None, skip_role=None, skip_profile=False,
-                  skip_permission=False, no_app=False, not_in_app=None):
-    """Everything that belongs to the solution exists: what Nordstern Test has after the managed import.
+                  skip_permission=False, no_app=False, not_in_app=None, audit_off=False):
+    """Everything that belongs to the solution exists: what Nordstern Test has after the managed import, plus the environment audit switch
+    (an organization setting that `apply --only auditing` sets in Test; `audit_off` leaves it off).
 
     `not_in_app` names a table that exists but is no component of the app: the app still lists its id, but under another component
     type, which must not count. No route is registered for anything else, so a request for it fails the test as unmocked."""
@@ -60,6 +62,7 @@ def mock_solution(skip_table=None, skip_attribute=None, skip_choice=None, skip_r
     respx.get(API + "fieldsecurityprofiles").respond(200, json={"value": [] if skip_profile else [{"fieldsecurityprofileid": "profile-1"}]})
     respx.get(API + "fieldpermissions").respond(200, json={"value": [] if skip_permission else [
         {"entityname": table, "attributelogicalname": column} for table, column in column_security.columns]})
+    respx.get(API + "organizations").respond(200, json={"value": [{"organizationid": "org-1", "isauditenabled": not audit_off}]})
     respx.get(API + "appmodules").respond(200, json={"value": [] if no_app else [{"appmoduleid": APP_ID}]})
     respx.get(API + "appmodules/Microsoft.Dynamics.CRM.RetrieveUnpublishedMultiple()").respond(200, json={"value": []})
     if not no_app:  # without the app module there is nothing to ask for
@@ -129,6 +132,7 @@ SOLUTION_CASES = [  # deviations in solution components: reported by a full veri
     ({"skip_permission": True}, [f"Spaltenberechtigung {table}.{column}" for table, column in DEFS.security.column_security.columns]),
     ({"no_app": True}, ["App-Modul"]),
     ({"not_in_app": "nst_massnahme"}, [f"App-Komponente {APP_UNIQUE}: Tabelle nst_massnahme"]),
+    ({"audit_off": True}, [AUDIT_OFF]),
 ]
 SEED_CASES = [  # business units, owner teams and the seed exist only in the full environment
     ({"skip_unit": "Nordstern Energie"}, ["Unternehmenseinheit Nordstern Energie"]),
@@ -170,6 +174,22 @@ def test_the_app_components_are_asked_for_once_in_both_modes(solution_only):
     mock_environment(solution_only=solution_only)
     assert run(expect_seed=not solution_only) == []
     assert len([c for c in respx.calls if "RetrieveAppComponents" in str(c.request.url)]) == 1
+
+
+@pytest.mark.parametrize("solution_only", [False, True], ids=["voll", "nur-loesung"])
+@respx.mock
+def test_the_audit_switch_is_read_once_in_both_modes_and_reported_next_to_other_deviations(solution_only):
+    mock_environment(solution_only=solution_only, audit_off=True, skip_role="nst Leser")
+    assert sorted(run(expect_seed=not solution_only)) == sorted(["Rolle nst Leser", AUDIT_OFF])
+    assert [c.request.method for c in respx.calls if str(c.request.url).startswith(API + "organizations")] == ["GET"]
+
+
+@pytest.mark.parametrize("solution_only", [False, True], ids=["voll", "nur-loesung"])
+@respx.mock
+def test_the_audit_switch_on_gives_no_deviation_and_verify_never_writes(solution_only):
+    mock_environment(solution_only=solution_only)
+    assert run(expect_seed=not solution_only) == []
+    assert {c.request.method for c in respx.calls} == {"GET"}
 
 
 @respx.mock

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from .app import app_unique_name, find_app_module
+from .auditing import audit_enabled
 from .client import DataverseClient
 from .config import Settings
 from .definitions import Definitions
@@ -55,7 +56,8 @@ def run_verify(client: DataverseClient, settings: Settings, defs: Definitions, e
     `expect_seed=False` checks the solution components only: tables, columns, choices, relationships, roles, the column security profile,
     the app module and that the tables are components of the app. Business units, owner teams, their membership and the seed are not
     solution components, so an environment that only received the managed solution (Nordstern Test, `deploy-test.yml`) has none of them
-    (ADR-003)."""
+    (ADR-003). The environment audit switch is no solution component either, but both modes check it: it is the one thing besides the
+    solution that `apply --only auditing` sets in Test (ADR-003)."""
     problems = []
     entities = {e["LogicalName"]: e["MetadataId"] for e in client.get("EntityDefinitions", {"$select": "LogicalName,MetadataId"})["value"]}
     missing_tables = set()
@@ -80,6 +82,8 @@ def run_verify(client: DataverseClient, settings: Settings, defs: Definitions, e
         problems += _app_table_components(client, app_id, unique, {t.schema: entities[t.schema] for t in defs.tables if t.schema in entities})
     else:
         problems.append("App-Modul")
+    if not audit_enabled(client):
+        problems.append("Umgebungs-Auditing ist ausgeschaltet (organizations.isauditenabled)")
     if expect_seed:
         bus = {b["name"] for b in client.get("businessunits", {"$select": "name"})["value"]}
         problems += [f"Unternehmenseinheit {b}" for b in defs.security.business_units if b not in bus]

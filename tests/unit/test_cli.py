@@ -6,7 +6,7 @@ import pytest
 import respx
 from typer.testing import CliRunner
 
-from kiregister import bootstrap
+from kiregister import auditing, bootstrap
 from kiregister.cli import app
 from kiregister.client import DataverseClient
 
@@ -42,6 +42,60 @@ def test_apply_help_shows_only_and_env():
 def test_apply_rejects_unknown_only():
     result = runner.invoke(app, ["apply", "--only", "nonsense"])
     assert result.exit_code != 0
+
+
+def test_apply_help_lists_auditing_and_names_it_as_the_one_variant_that_runs_against_test():
+    result = runner.invoke(app, ["apply", "--help"])
+    assert result.exit_code == 0
+    out = plain(result.output)
+    assert "metadata | security | app | auditing" in out
+    assert "Gegen Test laeuft nur" in out and "apply --only auditing" in out
+
+
+def stub_apply(monkeypatch):
+    """apply without Dataverse: each step records its name when it runs; the client, settings and definitions are stand-ins."""
+    from kiregister import app as app_module
+    from kiregister import cli, metadata, security
+    steps = []
+    monkeypatch.setattr(cli, "_client", lambda env: (object(), object(), object()))
+    monkeypatch.setattr(metadata, "apply_metadata", lambda client, settings, defs: steps.append("metadata") or {"tables": 8})
+    monkeypatch.setattr(security, "apply_security", lambda client, settings, defs: steps.append("security") or {"roles": 4})
+    monkeypatch.setattr(app_module, "apply_app", lambda client, settings, defs: steps.append("app") or {"app": "id"})
+    monkeypatch.setattr(auditing, "ensure_auditing", lambda client: steps.append("auditing") or True)
+    return steps
+
+
+@pytest.mark.parametrize("only, expected", [("metadata", ["metadata"]), ("security", ["security"]), ("app", ["app"]), ("auditing", ["auditing"]),
+                                            (None, ["metadata", "security", "app", "auditing"])])
+def test_apply_runs_the_chosen_step_only_and_the_full_apply_ends_with_auditing(monkeypatch, only, expected):
+    steps = stub_apply(monkeypatch)
+    result = runner.invoke(app, ["apply", "--env", "dev", *(["--only", only] if only else [])])
+    assert result.exit_code == 0, result.output
+    assert steps == expected
+
+
+@pytest.mark.parametrize("changed, text", [(True, "auditing: eingeschaltet"), (False, "auditing: war bereits eingeschaltet")])
+def test_apply_only_auditing_says_whether_it_changed_something(monkeypatch, changed, text):
+    stub_apply(monkeypatch)
+    monkeypatch.setattr(auditing, "ensure_auditing", lambda client: changed)
+    result = runner.invoke(app, ["apply", "--only", "auditing"])
+    assert result.exit_code == 0 and text in result.output
+
+
+@respx.mock
+@pytest.mark.parametrize("env, variable", [("dev", "DATAVERSE_URL_DEV"), ("test", "DATAVERSE_URL_TEST")])
+def test_apply_only_auditing_reads_and_patches_the_organization_row_and_nothing_else(monkeypatch, env, variable):
+    """The variant that runs against Test: any other request would be unmocked and fail the run."""
+    from kiregister import cli
+    monkeypatch.setenv(variable, "https://org.crm4.dynamics.com")
+    monkeypatch.setattr(cli, "ClientCredentialTokens", lambda settings: Tokens())
+    org = "cccccccc-0000-0000-0000-00000000000c"
+    get = respx.get(API + "organizations").respond(200, json={"value": [{"organizationid": org, "isauditenabled": False}]})
+    patch = respx.patch(API + f"organizations({org})").respond(204)
+    result = runner.invoke(app, ["apply", "--env", env, "--only", "auditing"])
+    assert result.exit_code == 0, result.output
+    assert "auditing: eingeschaltet" in result.output
+    assert get.call_count == 1 and patch.call_count == 1 and len(respx.calls) == 2
 
 
 def test_bootstrap_requires_client_id(monkeypatch):
