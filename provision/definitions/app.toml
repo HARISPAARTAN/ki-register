@@ -2,6 +2,10 @@
 unique_name = "nst_kiregister"
 display = "KI-Register"
 description = "Register der KI-Systeme der Nordstern Gruppe (fiktiv, keine Rechtsberatung)"
+# Rollen, die die App öffnen dürfen (Verknüpfung appmoduleroles_association, apply legt sie an und entfernt nie eine). Ohne sie kann ein
+# Benutzer, der nur eine nst-Rolle hält, die App nicht öffnen: der Export führt sonst nur System Administrator und System Customizer auf.
+# Nicht nst Datenbesitz: die Rolle gehört nur den Besitzerteams, kein Benutzer hält sie (ADR-002).
+roles = ["nst KI-Governance", "nst Fachbereich", "nst Leser"]
 
 [[area]]
 id = "register"

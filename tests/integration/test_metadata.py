@@ -86,6 +86,12 @@ def test_choice_values_match_definitions(client, defs, settings):
         assert labels == c.values and values == [settings.option_prefix * 10000 + i for i in range(len(c.values))]
 
 
+def test_the_solution_has_the_configured_version(client, settings):
+    """T8-D3: `apply` raises the version of the solution to config.toml (1.1.0.0 after milestone 1)."""
+    sol = client.find_one("solutions", f"uniquename eq '{settings.solution}'", "version")
+    assert sol is not None and sol["version"] == settings.solution_version
+
+
 def test_apply_is_idempotent(client, settings, defs):
     from kiregister.metadata import apply_metadata
     def snapshot():

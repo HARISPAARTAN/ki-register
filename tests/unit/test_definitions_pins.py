@@ -98,3 +98,16 @@ def test_hochrisiko_view_shows_tier_hoch_only():
     assert [(f.column, f.op, f.values) for f in view.filter] == [("nst_risikoklasse", "eq", ["Hoch"])]
     xml = builders.fetch_xml(view, d, 58000)
     assert 'attribute="nst_risikoklasse" operator="eq" value="580000002"' in xml and "580000001" not in xml
+
+
+def test_the_app_is_open_to_the_three_user_roles_and_never_to_the_owner_role():
+    from kiregister.security import OWNER_ROLE
+    d = load_definitions(DEFS)
+    assert d.app.roles == ["nst KI-Governance", "nst Fachbereich", "nst Leser"]
+    assert OWNER_ROLE not in d.app.roles  # held by the member-less owner teams only, never by a user
+
+
+def test_the_solution_version_is_1_1_0_0_after_milestone_1():
+    """Spec 9: raised per milestone (1.1.0.0 after M1, 1.2.0.0 after M2, 1.3.0.0 after M3); `apply` sets it in the solution."""
+    from kiregister.config import load_settings
+    assert load_settings("dev", Path(__file__).resolve().parents[2]).solution_version == "1.1.0.0"

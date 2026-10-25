@@ -1,3 +1,4 @@
+import dataclasses
 import json
 import re
 from pathlib import Path
@@ -65,14 +66,45 @@ def test_ensure_publisher_and_solution_creates_publisher_when_missing(tmp_path):
     assert json.loads(sol_post.calls.last.request.content)["publisherid@odata.bind"] == "/publishers(11111111-0000-0000-0000-000000000001)"
 
 
+@pytest.mark.parametrize("version", ["1.0.0.0", "1.1.0.0"])
 @respx.mock
-def test_ensure_publisher_and_solution_does_nothing_when_both_exist(tmp_path):
+def test_ensure_publisher_and_solution_does_nothing_when_both_exist_with_the_configured_version(tmp_path, version):
     respx.get(url__startswith=API + "publishers").mock(return_value=httpx.Response(200, json={"value": [{"publisherid": "p"}]}))
-    respx.get(url__startswith=API + "solutions").mock(return_value=httpx.Response(200, json={"value": [{"solutionid": "s"}]}))
+    respx.get(url__startswith=API + "solutions").mock(return_value=httpx.Response(200, json={"value": [{"solutionid": "s", "version": version}]}))
     pub_post = respx.post(API + "publishers").mock(return_value=created_entity("publishers"))
     sol_post = respx.post(API + "solutions").mock(return_value=created_entity("solutions"))
-    metadata.ensure_publisher_and_solution(DataverseClient(API, Tokens(), solution="S"), settings(tmp_path))
-    assert not pub_post.called and not sol_post.called
+    sol_patch = respx.patch(API + "solutions(s)").mock(return_value=httpx.Response(204))
+    configured = dataclasses.replace(settings(tmp_path), solution_version=version)
+    metadata.ensure_publisher_and_solution(DataverseClient(API, Tokens(), solution="S"), configured)
+    assert not pub_post.called and not sol_post.called and not sol_patch.called
+
+
+@respx.mock
+def test_ensure_publisher_and_solution_raises_the_version_of_an_existing_solution_once(tmp_path):
+    respx.get(url__startswith=API + "publishers").mock(return_value=httpx.Response(200, json={"value": [{"publisherid": "p"}]}))
+    solutions = respx.get(url__startswith=API + "solutions").mock(side_effect=[
+        httpx.Response(200, json={"value": [{"solutionid": "sol-1", "version": "1.0.0.0"}]}),
+        httpx.Response(200, json={"value": [{"solutionid": "sol-1", "version": "1.1.0.0"}]})])  # the second run sees the raised version
+    sol_post = respx.post(API + "solutions").mock(return_value=created_entity("solutions"))
+    sol_patch = respx.patch(API + "solutions(sol-1)").mock(return_value=httpx.Response(204))
+    configured = dataclasses.replace(settings(tmp_path), solution_version="1.1.0.0")
+    client = DataverseClient(API, Tokens(), solution="S")
+    metadata.ensure_publisher_and_solution(client, configured)
+    metadata.ensure_publisher_and_solution(client, configured)
+    assert solutions.call_count == 2 and sol_patch.call_count == 1 and not sol_post.called
+    request = sol_patch.calls.last.request
+    assert json.loads(request.content) == {"version": "1.1.0.0"} and HEADER not in request.headers
+
+
+@respx.mock
+def test_a_failing_version_patch_names_the_solution(tmp_path):
+    respx.get(url__startswith=API + "publishers").mock(return_value=httpx.Response(200, json={"value": [{"publisherid": "p"}]}))
+    respx.get(url__startswith=API + "solutions").mock(return_value=httpx.Response(200, json={"value": [{"solutionid": "sol-1", "version": "1.0.0.0"}]}))
+    respx.patch(API + "solutions(sol-1)").mock(return_value=httpx.Response(400, json={"error": {"code": "c", "message": "verwaltet"}}))
+    configured = dataclasses.replace(settings(tmp_path), solution_version="1.1.0.0")
+    with pytest.raises(DataverseError) as exc:
+        metadata.ensure_publisher_and_solution(DataverseClient(API, Tokens(), solution="S"), configured)
+    assert "NordsternKIRegister" in str(exc.value) and "verwaltet" in str(exc.value)
 
 
 @respx.mock

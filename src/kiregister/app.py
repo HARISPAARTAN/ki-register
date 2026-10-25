@@ -8,6 +8,7 @@ from . import builders
 from .client import DataverseClient
 from .config import Settings
 from .definitions import Definitions
+from .security import root_business_unit
 
 log = logging.getLogger(__name__)
 FORM_MAIN, FORM_DASHBOARD = 2, 0
@@ -180,6 +181,28 @@ def app_unique_name(settings: Settings, defs: Definitions) -> str:
     return f"{settings.prefix}_{defs.app.unique_name.removeprefix(settings.prefix + '_')}"
 
 
+def ensure_app_roles(client: DataverseClient, app_id: str, role_names: list[str]) -> list[str]:
+    """Let the named security roles open the app (N:N relationship appmoduleroles_association); returns the names that were added.
+
+    Without it only System Administrator and System Customizer can open the app, so a user who holds just an nst role cannot (the
+    exported AppModule.xml lists no other role). The role of the root business unit is associated, as for the two stock roles; the copies
+    in the child units follow their root role. Reads first and adds what is missing; it never removes an association."""
+    root, _ = root_business_unit(client)
+    held = {r["roleid"] for r in client.get_all(f"appmodules({app_id})/appmoduleroles_association", {"$select": "roleid"})}
+    added = []
+    for name in role_names:
+        role = client.find_one("roles", f"name eq '{_quote(name)}' and _businessunitid_value eq {root}", "roleid")
+        if not role:
+            raise RuntimeError(f"Rolle {name} fehlt in der Wurzel-Unternehmenseinheit (zuerst `kiregister apply --only security` ausfuehren)")
+        if role["roleid"] in held:
+            continue
+        client.post(f"appmodules({app_id})/appmoduleroles_association/$ref", {"@odata.id": f"{client.api_url}roles({role['roleid']})"}, solution=False,
+                    component=f"Rolle {name} fuer die App")
+        log.info("Rolle %s darf die App oeffnen", name)
+        added.append(name)
+    return added
+
+
 def ensure_app_module(client: DataverseClient, settings: Settings, defs: Definitions, dashboard_id: str, form_ids: dict, view_ids: dict,
                       chart_ids: dict) -> str:
     a = defs.app
@@ -202,6 +225,7 @@ def ensure_app_module(client: DataverseClient, settings: Settings, defs: Definit
     comps = app_components(defs, form_ids, view_ids, chart_ids, dashboard_id, entity_ids)
     client.action("AddAppComponents", {"AppId": app_id, "Components": [{"@odata.type": "Microsoft.Dynamics.CRM.sitemap", "sitemapid": sm_id}, *comps]})
     client.action("PublishXml", {"ParameterXml": f"<importexportxml><appmodules><appmodule>{app_id}</appmodule></appmodules></importexportxml>"}, solution=False)
+    ensure_app_roles(client, app_id, a.roles)  # after the publish: a new app is only readable once published
     problems = validate_app(client, app_id)
     if problems:
         log.warning("ValidateApp meldet %d Fehler: %s", len(problems), problems[:3])

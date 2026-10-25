@@ -176,6 +176,7 @@ class AppDef:
     forms: list[Form]
     charts: list[Chart]
     dashboard: Dashboard
+    roles: list[str] = field(default_factory=list)  # names of the security roles that may open the app (appmoduleroles_association)
 
 
 @dataclass(frozen=True)
@@ -278,5 +279,12 @@ def load_definitions(directory: Path) -> Definitions:
             raise ValueError(f"Tabelle {table}: {n} Ansichten mit default = true; hoechstens eine (sonst wechselt die Standardansicht bei jedem Lauf)")
     areas = [Area(a["id"], a["title"], a.get("tables", []), a.get("dashboard")) for a in app_raw["area"]]
     a = app_raw["app"]
-    app = AppDef(a["unique_name"], a["display"], a["description"], areas, views, forms, charts, dashboard)
+    app_roles = list(a.get("roles", []))
+    known_roles = {r.name for r in roles}
+    for name in app_roles:
+        if name not in known_roles:
+            raise ValueError(f"App-Rolle {name!r} ist in security.toml nicht definiert")
+    if len(set(app_roles)) != len(app_roles):
+        raise ValueError(f"App-Rollen doppelt aufgefuehrt: {app_roles}")
+    app = AppDef(a["unique_name"], a["display"], a["description"], areas, views, forms, charts, dashboard, app_roles)
     return Definitions(choices, tables, rels, security, app)

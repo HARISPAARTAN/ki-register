@@ -83,3 +83,31 @@ def test_two_default_views_on_one_table_are_rejected(tmp_path):
     app_toml.write_text(text, encoding="utf-8")
     with pytest.raises(ValueError, match="nst_kisystem"):
         load_definitions(tmp_path)
+
+
+def _with_app_roles(tmp_path, roles_line):
+    import shutil
+    for f in DEFS.glob("*.toml"):
+        shutil.copy(f, tmp_path / f.name)
+    app_toml = tmp_path / "app.toml"
+    text = app_toml.read_text(encoding="utf-8")
+    old = 'roles = ["nst KI-Governance", "nst Fachbereich", "nst Leser"]'
+    assert old in text
+    app_toml.write_text(text.replace(old, roles_line, 1), encoding="utf-8")
+    return tmp_path
+
+
+def test_an_app_role_that_security_toml_does_not_define_is_rejected(tmp_path):
+    import pytest
+    with pytest.raises(ValueError, match="nst Gibtesnicht"):
+        load_definitions(_with_app_roles(tmp_path, 'roles = ["nst KI-Governance", "nst Gibtesnicht"]'))
+
+
+def test_a_duplicate_app_role_is_rejected(tmp_path):
+    import pytest
+    with pytest.raises(ValueError, match="doppelt"):
+        load_definitions(_with_app_roles(tmp_path, 'roles = ["nst Leser", "nst Leser"]'))
+
+
+def test_an_app_without_roles_loads_with_an_empty_list(tmp_path):
+    assert load_definitions(_with_app_roles(tmp_path, "roles = []")).app.roles == []

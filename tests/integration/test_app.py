@@ -1,6 +1,6 @@
 import pytest
 
-from kiregister import app
+from kiregister import app, security
 
 pytestmark = pytest.mark.dataverse
 
@@ -56,6 +56,26 @@ def test_the_tables_are_app_components_and_validate_app_reports_no_issue(client,
     assert app.validation_issues(client, app_id) == []
 
 
+def _app_role_ids(client, app_id):
+    return {r["roleid"] for r in client.get_all(f"appmodules({app_id})/appmoduleroles_association", {"$select": "roleid"})}
+
+
+def _root_role_id(client, name):
+    root, _ = security.root_business_unit(client)
+    role = client.find_one("roles", f"name eq '{name}' and _businessunitid_value eq {root}", "roleid")
+    assert role is not None, name
+    return role["roleid"]
+
+
+def test_the_user_roles_may_open_the_app_and_the_owner_role_may_not(client, settings, defs):
+    """T8-D2: the export mapped only System Administrator and System Customizer, so a user holding just an nst role could not open the app."""
+    held = _app_role_ids(client, _app_id(client, settings))
+    for name in defs.app.roles:
+        assert _root_role_id(client, name) in held, name
+    assert _root_role_id(client, security.OWNER_ROLE) not in held  # no user holds it
+    assert {_root_role_id(client, "System Administrator"), _root_role_id(client, "System Customizer")} <= held  # apply removes nothing
+
+
 def test_our_forms_and_views_are_the_only_defaults_of_each_table(client, defs):
     for t in defs.tables:
         forms = client.get_all("systemforms", {"$select": "name,isdefault", "$filter": f"objecttypecode eq '{t.schema}' and type eq 2"})
@@ -76,7 +96,9 @@ def test_apply_app_is_idempotent(client, settings, defs):
 
     before = snapshot()
     components_before = _components(client, _app_id(client, settings))
+    roles_before = _app_role_ids(client, _app_id(client, settings))
     result = app.apply_app(client, settings, defs)
     assert result["views"] == 13 and result["forms"] == 8 and result["charts"] == 3
     assert snapshot() == before
     assert _components(client, _app_id(client, settings)) == components_before
+    assert _app_role_ids(client, _app_id(client, settings)) == roles_before

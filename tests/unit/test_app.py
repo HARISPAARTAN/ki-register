@@ -18,6 +18,9 @@ SETTINGS = load_settings("dev", ROOT)
 NEW = "00000000-0000-0000-0000-0000000000b2"
 APP_ID = "00000000-0000-0000-0000-0000000000c1"
 SM_ID = "00000000-0000-0000-0000-0000000000d1"
+ROOT_BU = "00000000-0000-0000-0000-0000000000e1"
+ROLE_IDS = {name: f"00000000-0000-0000-0003-{i:012d}" for i, name in enumerate(DEFS.app.roles)}  # the root copies of the app roles
+STOCK_ROLE = "00000000-0000-0000-0003-0000000000ff"  # System Administrator: mapped by the platform, not by the definitions
 
 
 class Tokens:
@@ -41,6 +44,25 @@ def all_view_ids():
 
 def chart_ids():
     return {(c.table, c.name): f"00000000-0000-0000-0002-{i:012d}" for i, c in enumerate(DEFS.app.charts)}
+
+
+def mock_app_roles(held):
+    """The root business unit, the root copies of the app roles (looked up by name in the root unit) and the roles `held` by the app.
+
+    Returns the route of the association POST. No DELETE route exists, so a removal would fail the test as unmocked."""
+    respx.get(API + "businessunits").respond(200, json={"value": [
+        {"businessunitid": ROOT_BU, "name": "org", "_parentbusinessunitid_value": None},
+        {"businessunitid": "child-1", "name": "Nordstern Energie", "_parentbusinessunitid_value": ROOT_BU}]})
+
+    def roles(request):
+        wanted = request.url.params["$filter"]
+        assert f"_businessunitid_value eq {ROOT_BU}" in wanted  # the copies in the child units are not the ones to associate
+        name = re.search(r"name eq '([^']+)'", wanted).group(1)
+        return httpx.Response(200, json={"value": [{"roleid": ROLE_IDS[name]}] if name in ROLE_IDS else []})
+
+    respx.get(API + "roles").mock(side_effect=roles)
+    respx.get(API + f"appmodules({APP_ID})/appmoduleroles_association").respond(200, json={"value": [{"roleid": r} for r in held]})
+    return respx.post(API + f"appmodules({APP_ID})/appmoduleroles_association/$ref").mock(return_value=httpx.Response(204))
 
 
 @respx.mock
@@ -208,6 +230,7 @@ def test_ensure_app_module_creates_the_app_and_sitemap_and_publishes():
     add = respx.post(API + "AddAppComponents").mock(return_value=httpx.Response(204))
     publish = respx.post(API + "PublishXml").mock(return_value=httpx.Response(204))
     respx.get(API + f"ValidateApp(AppModuleId={APP_ID})").respond(200, json={"AppValidationResponse": {"ValidationSuccess": True, "ValidationIssueList": []}})
+    associate = mock_app_roles(held=[STOCK_ROLE])
     forms = {t.schema: f"form-{t.schema}" for t in DEFS.tables}
     assert app.ensure_app_module(new_client(), SETTINGS, DEFS, "dash-1", forms, all_view_ids(), chart_ids()) == APP_ID
     body = json.loads(create_app.calls[0].request.content)
@@ -218,3 +241,38 @@ def test_ensure_app_module_creates_the_app_and_sitemap_and_publishes():
     assert not [c for c in comps if c["@odata.type"].endswith(".entity")]  # components off: no table ids are fetched or sent
     assert APP_ID in json.loads(publish.calls[0].request.content)["ParameterXml"]
     assert "MSCRM.SolutionUniqueName" not in publish.calls[0].request.headers
+    assert associate.call_count == len(DEFS.app.roles)
+    order = [(c.request.method, c.request.url.path.rsplit("/", 1)[-1]) for c in respx.calls]
+    assert order.index(("POST", "PublishXml")) < order.index(("POST", "$ref"))  # a new app is only readable once it is published
+
+
+@respx.mock
+def test_ensure_app_roles_associates_the_missing_roles_with_their_root_copies():
+    associate = mock_app_roles(held=[STOCK_ROLE])
+    added = app.ensure_app_roles(new_client(), APP_ID, DEFS.app.roles)
+    assert added == DEFS.app.roles == ["nst KI-Governance", "nst Fachbereich", "nst Leser"]
+    assert [json.loads(c.request.content) for c in associate.calls] == [{"@odata.id": f"{API}roles({ROLE_IDS[n]})"} for n in DEFS.app.roles]
+    assert all("MSCRM.SolutionUniqueName" not in c.request.headers for c in associate.calls)
+
+
+@respx.mock
+def test_ensure_app_roles_adds_only_the_role_that_is_missing():
+    associate = mock_app_roles(held=[STOCK_ROLE, ROLE_IDS["nst KI-Governance"], ROLE_IDS["nst Leser"]])
+    assert app.ensure_app_roles(new_client(), APP_ID, DEFS.app.roles) == ["nst Fachbereich"]
+    assert [json.loads(c.request.content) for c in associate.calls] == [{"@odata.id": f"{API}roles({ROLE_IDS['nst Fachbereich']})"}]
+
+
+@respx.mock
+def test_ensure_app_roles_is_idempotent_and_never_removes_an_association():
+    associate = mock_app_roles(held=[STOCK_ROLE, *ROLE_IDS.values()])  # the stock role is not in the definition and stays
+    assert app.ensure_app_roles(new_client(), APP_ID, DEFS.app.roles) == []
+    assert associate.call_count == 0
+    assert {c.request.method for c in respx.calls} == {"GET"}
+
+
+@respx.mock
+def test_ensure_app_roles_names_a_role_that_does_not_exist_in_the_root_unit():
+    associate = mock_app_roles(held=[])
+    with pytest.raises(RuntimeError, match="nst Gibtesnicht"):
+        app.ensure_app_roles(new_client(), APP_ID, ["nst Gibtesnicht"])
+    assert associate.call_count == 0

@@ -27,6 +27,11 @@ def ensure_publisher_and_solution(client: DataverseClient, settings: Settings) -
                                   "publisherid@odata.bind": f"/publishers({pub_id})"},
                     solution=False, component=settings.solution)
         log.info("Loesung %s angelegt", settings.solution)
+    elif sol.get("version") != settings.solution_version:
+        # the version is raised per milestone in config.toml (spec 9); the next export and the managed deployment carry it
+        client.patch(f"solutions({sol['solutionid']})", {"version": settings.solution_version}, solution=False,
+                     component=f"Loesung {settings.solution} Version")
+        log.info("Loesung %s: Version %s auf %s gesetzt", settings.solution, sol.get("version"), settings.solution_version)
 
 
 def ensure_choices(client: DataverseClient, defs: Definitions, option_prefix: int) -> dict[str, str]:
