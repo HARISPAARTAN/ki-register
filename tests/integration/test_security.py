@@ -104,5 +104,5 @@ def test_apply_security_is_idempotent(client, settings, defs):
 
     before = snapshot()
     result = security.apply_security(client, settings, defs)
-    assert result["business_units"] == 3 and result["roles"] == 3
+    assert result["business_units"] == 3 and result["roles"] == len(defs.security.roles) and result["owner_teams"] == 3
     assert snapshot() == before

@@ -1,0 +1,10 @@
+key,org,nst_name,nst_Organisation,nst_datum,nst_dauerminuten,nst_inhalt,nst_zielgruppe
+SCH-PM-1,PM,KI-Kompetenz Grundlagen,PM,2026-03-10,90,"Was ist ein KI-System, wo liegen Chancen und Grenzen, Überblick über Pflichten nach Art. 4 der KI-Verordnung.",Alle Beschäftigten
+SCH-PM-2,PM,Hochrisiko-Systeme im Betrieb,PM,2026-09-08,90,"Pflichten der Betreiber nach Art. 26: menschliche Aufsicht, Protokolle, Information der Betroffenen.",Betreiber von Hochrisiko-Systemen
+SCH-PM-3,PM,Transparenz und Kennzeichnung,PM,2026-11-17,90,"Hinweispflichten nach Art. 50 bei Chatbots und erzeugten Inhalten, praktische Formulierungen.",Vertrieb und Marketing
+SCH-EN-1,EN,KI-Kompetenz Grundlagen,EN,2026-03-12,90,"Was ist ein KI-System, wo liegen Chancen und Grenzen, Überblick über Pflichten nach Art. 4 der KI-Verordnung.",Alle Beschäftigten
+SCH-EN-2,EN,Hochrisiko-Systeme im Betrieb,EN,2026-09-10,90,"Pflichten der Betreiber und Anbieter nach Art. 16 und 26, Besonderheiten bei kritischer Infrastruktur.",Netzbetrieb und Kundenservice
+SCH-EN-3,EN,Transparenz und Kennzeichnung,EN,2026-11-19,90,"Hinweispflichten nach Art. 50 bei Chatbots und erzeugten Inhalten, praktische Formulierungen.",Kundenservice und IT
+SCH-KL-1,KL,KI-Kompetenz Grundlagen,KL,2026-03-17,90,"Was ist ein KI-System, wo liegen Chancen und Grenzen, Überblick über Pflichten nach Art. 4 der KI-Verordnung.",Alle Beschäftigten
+SCH-KL-2,KL,Hochrisiko-Systeme im Betrieb,KL,2026-09-15,90,"Pflichten der Betreiber nach Art. 26 bei Medizinprodukten und Triage, ärztliche Aufsicht, Meldung von Vorfällen.",Ärztlicher Dienst und Klinik-IT
+SCH-KL-3,KL,Transparenz und Kennzeichnung,KL,2026-11-24,90,"Hinweispflichten nach Art. 50 bei Patienten-Chatbots, Umgang mit erzeugten Texten.",Patientenmanagement und Pflege

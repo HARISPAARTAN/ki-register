@@ -1,0 +1,52 @@
+key,org,nst_name,nst_Schulung,nst_Mitarbeiter,nst_status,nst_abgeschlossenam
+T-SCH-PM-1-PM-HARTWIG,PM,Lena Hartwig – KI-Kompetenz Grundlagen,SCH-PM-1,PM-HARTWIG,Abgeschlossen,2026-03-10
+T-SCH-PM-1-PM-BRANDTNER,PM,Jonas Brandtner – KI-Kompetenz Grundlagen,SCH-PM-1,PM-BRANDTNER,Abgeschlossen,2026-03-10
+T-SCH-PM-1-PM-YILMAZ,PM,Fatma Yilmaz – KI-Kompetenz Grundlagen,SCH-PM-1,PM-YILMAZ,Abgeschlossen,2026-03-10
+T-SCH-PM-1-PM-WIEGAND,PM,Torben Wiegand – KI-Kompetenz Grundlagen,SCH-PM-1,PM-WIEGAND,Abgeschlossen,2026-03-10
+T-SCH-PM-1-PM-OSTERMANN,PM,Svenja Ostermann – KI-Kompetenz Grundlagen,SCH-PM-1,PM-OSTERMANN,Abgeschlossen,2026-03-10
+T-SCH-PM-1-PM-LINDHORST,PM,Kai-Uwe Lindhorst – KI-Kompetenz Grundlagen,SCH-PM-1,PM-LINDHORST,Überfällig,
+T-SCH-PM-1-PM-PETZOLD,PM,Marlene Petzold – KI-Kompetenz Grundlagen,SCH-PM-1,PM-PETZOLD,Abgeschlossen,2026-03-10
+T-SCH-PM-2-PM-HARTWIG,PM,Lena Hartwig – Hochrisiko-Systeme im Betrieb,SCH-PM-2,PM-HARTWIG,Abgeschlossen,2026-09-08
+T-SCH-PM-2-PM-OSTERMANN,PM,Svenja Ostermann – Hochrisiko-Systeme im Betrieb,SCH-PM-2,PM-OSTERMANN,Abgeschlossen,2026-09-08
+T-SCH-PM-2-PM-PETZOLD,PM,Marlene Petzold – Hochrisiko-Systeme im Betrieb,SCH-PM-2,PM-PETZOLD,Abgeschlossen,2026-09-08
+T-SCH-PM-2-PM-LINDHORST,PM,Kai-Uwe Lindhorst – Hochrisiko-Systeme im Betrieb,SCH-PM-2,PM-LINDHORST,Abgeschlossen,2026-09-08
+T-SCH-PM-2-PM-WIEGAND,PM,Torben Wiegand – Hochrisiko-Systeme im Betrieb,SCH-PM-2,PM-WIEGAND,Abgeschlossen,2026-09-08
+T-SCH-PM-3-PM-WIEGAND,PM,Torben Wiegand – Transparenz und Kennzeichnung,SCH-PM-3,PM-WIEGAND,Geplant,
+T-SCH-PM-3-PM-YILMAZ,PM,Fatma Yilmaz – Transparenz und Kennzeichnung,SCH-PM-3,PM-YILMAZ,Geplant,
+T-SCH-PM-3-PM-HARTWIG,PM,Lena Hartwig – Transparenz und Kennzeichnung,SCH-PM-3,PM-HARTWIG,Geplant,
+T-SCH-PM-3-PM-BRANDTNER,PM,Jonas Brandtner – Transparenz und Kennzeichnung,SCH-PM-3,PM-BRANDTNER,Geplant,
+T-SCH-PM-3-PM-PETZOLD,PM,Marlene Petzold – Transparenz und Kennzeichnung,SCH-PM-3,PM-PETZOLD,Geplant,
+T-SCH-EN-1-EN-AYDIN,EN,Merve Aydin – KI-Kompetenz Grundlagen,SCH-EN-1,EN-AYDIN,Abgeschlossen,2026-03-12
+T-SCH-EN-1-EN-DALLMANN,EN,Henrik Dallmann – KI-Kompetenz Grundlagen,SCH-EN-1,EN-DALLMANN,Abgeschlossen,2026-03-12
+T-SCH-EN-1-EN-WAGENFELD,EN,Ines Wagenfeld – KI-Kompetenz Grundlagen,SCH-EN-1,EN-WAGENFELD,Abgeschlossen,2026-03-12
+T-SCH-EN-1-EN-KOLBE,EN,Rasmus Kolbe – KI-Kompetenz Grundlagen,SCH-EN-1,EN-KOLBE,Abgeschlossen,2026-03-12
+T-SCH-EN-1-EN-KAYA,EN,Dilara Kaya – KI-Kompetenz Grundlagen,SCH-EN-1,EN-KAYA,Abgeschlossen,2026-03-12
+T-SCH-EN-1-EN-TESSMER,EN,Björn Tessmer – KI-Kompetenz Grundlagen,SCH-EN-1,EN-TESSMER,Abgeschlossen,2026-03-12
+T-SCH-EN-1-EN-ROSENTHAL,EN,Anneke Rosenthal – KI-Kompetenz Grundlagen,SCH-EN-1,EN-ROSENTHAL,Abgeschlossen,2026-03-12
+T-SCH-EN-2-EN-AYDIN,EN,Merve Aydin – Hochrisiko-Systeme im Betrieb,SCH-EN-2,EN-AYDIN,Abgeschlossen,2026-09-10
+T-SCH-EN-2-EN-DALLMANN,EN,Henrik Dallmann – Hochrisiko-Systeme im Betrieb,SCH-EN-2,EN-DALLMANN,Abgeschlossen,2026-09-10
+T-SCH-EN-2-EN-WAGENFELD,EN,Ines Wagenfeld – Hochrisiko-Systeme im Betrieb,SCH-EN-2,EN-WAGENFELD,Abgeschlossen,2026-09-10
+T-SCH-EN-2-EN-KOLBE,EN,Rasmus Kolbe – Hochrisiko-Systeme im Betrieb,SCH-EN-2,EN-KOLBE,Überfällig,
+T-SCH-EN-2-EN-ROSENTHAL,EN,Anneke Rosenthal – Hochrisiko-Systeme im Betrieb,SCH-EN-2,EN-ROSENTHAL,Abgeschlossen,2026-09-10
+T-SCH-EN-3-EN-WAGENFELD,EN,Ines Wagenfeld – Transparenz und Kennzeichnung,SCH-EN-3,EN-WAGENFELD,Geplant,
+T-SCH-EN-3-EN-KAYA,EN,Dilara Kaya – Transparenz und Kennzeichnung,SCH-EN-3,EN-KAYA,Geplant,
+T-SCH-EN-3-EN-AYDIN,EN,Merve Aydin – Transparenz und Kennzeichnung,SCH-EN-3,EN-AYDIN,Geplant,
+T-SCH-EN-3-EN-TESSMER,EN,Björn Tessmer – Transparenz und Kennzeichnung,SCH-EN-3,EN-TESSMER,Geplant,
+T-SCH-EN-3-EN-ROSENTHAL,EN,Anneke Rosenthal – Transparenz und Kennzeichnung,SCH-EN-3,EN-ROSENTHAL,Geplant,
+T-SCH-KL-1-KL-OBERLAENDER,KL,Dr. Sina Oberländer – KI-Kompetenz Grundlagen,SCH-KL-1,KL-OBERLAENDER,Abgeschlossen,2026-03-17
+T-SCH-KL-1-KL-REINHOLT,KL,Prof. Dr. Matthias Reinholt – KI-Kompetenz Grundlagen,SCH-KL-1,KL-REINHOLT,Abgeschlossen,2026-03-17
+T-SCH-KL-1-KL-FALKENBERG,KL,Dr. Leona Falkenberg – KI-Kompetenz Grundlagen,SCH-KL-1,KL-FALKENBERG,Abgeschlossen,2026-03-17
+T-SCH-KL-1-KL-NOWACK,KL,Jörg Nowack – KI-Kompetenz Grundlagen,SCH-KL-1,KL-NOWACK,Überfällig,
+T-SCH-KL-1-KL-SIEVERS,KL,Katrin Sievers – KI-Kompetenz Grundlagen,SCH-KL-1,KL-SIEVERS,Abgeschlossen,2026-03-17
+T-SCH-KL-1-KL-BALTACI,KL,Emre Baltaci – KI-Kompetenz Grundlagen,SCH-KL-1,KL-BALTACI,Abgeschlossen,2026-03-17
+T-SCH-KL-1-KL-WITTKOPP,KL,Dr. Helene Wittkopp – KI-Kompetenz Grundlagen,SCH-KL-1,KL-WITTKOPP,Abgeschlossen,2026-03-17
+T-SCH-KL-2-KL-OBERLAENDER,KL,Dr. Sina Oberländer – Hochrisiko-Systeme im Betrieb,SCH-KL-2,KL-OBERLAENDER,Abgeschlossen,2026-09-15
+T-SCH-KL-2-KL-REINHOLT,KL,Prof. Dr. Matthias Reinholt – Hochrisiko-Systeme im Betrieb,SCH-KL-2,KL-REINHOLT,Abgeschlossen,2026-09-15
+T-SCH-KL-2-KL-FALKENBERG,KL,Dr. Leona Falkenberg – Hochrisiko-Systeme im Betrieb,SCH-KL-2,KL-FALKENBERG,Abgeschlossen,2026-09-15
+T-SCH-KL-2-KL-BALTACI,KL,Emre Baltaci – Hochrisiko-Systeme im Betrieb,SCH-KL-2,KL-BALTACI,Überfällig,
+T-SCH-KL-2-KL-WITTKOPP,KL,Dr. Helene Wittkopp – Hochrisiko-Systeme im Betrieb,SCH-KL-2,KL-WITTKOPP,Abgeschlossen,2026-09-15
+T-SCH-KL-3-KL-SIEVERS,KL,Katrin Sievers – Transparenz und Kennzeichnung,SCH-KL-3,KL-SIEVERS,Geplant,
+T-SCH-KL-3-KL-OBERLAENDER,KL,Dr. Sina Oberländer – Transparenz und Kennzeichnung,SCH-KL-3,KL-OBERLAENDER,Geplant,
+T-SCH-KL-3-KL-NOWACK,KL,Jörg Nowack – Transparenz und Kennzeichnung,SCH-KL-3,KL-NOWACK,Geplant,
+T-SCH-KL-3-KL-BALTACI,KL,Emre Baltaci – Transparenz und Kennzeichnung,SCH-KL-3,KL-BALTACI,Geplant,
+T-SCH-KL-3-KL-WITTKOPP,KL,Dr. Helene Wittkopp – Transparenz und Kennzeichnung,SCH-KL-3,KL-WITTKOPP,Geplant,

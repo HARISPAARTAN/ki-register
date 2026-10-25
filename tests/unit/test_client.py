@@ -265,3 +265,17 @@ def test_post_id_returns_the_id_and_rejects_a_missing_one():
     respx.post(api + "bare").mock(return_value=httpx.Response(204))
     with pytest.raises(DataverseError, match="ID"):
         c.post_id("bare", {})
+
+
+@respx.mock
+def test_get_text_returns_the_bare_answer_of_a_count_request():
+    route = respx.get(API + "nst_kisystems/$count").mock(return_value=httpx.Response(200, content=(chr(0xFEFF) + "20\n").encode()))  # the service prefixes a byte order mark
+    assert DataverseClient(API, Tokens()).get_text("nst_kisystems/$count") == "20"
+    assert "MSCRM.SolutionUniqueName" not in route.calls.last.request.headers
+
+
+@respx.mock
+def test_get_text_raises_with_the_error_text():
+    respx.get(API + "nst_kisystems/$count").mock(return_value=httpx.Response(404, json={"error": {"code": "0x0", "message": "nope"}}))
+    with pytest.raises(DataverseError, match="nope"):
+        DataverseClient(API, Tokens()).get_text("nst_kisystems/$count")

@@ -116,6 +116,10 @@ class DataverseClient:
     def get(self, path: str, params: dict | None = None) -> dict:
         return self._request("GET", path, params=params).json()
 
+    def get_text(self, path: str, params: dict | None = None) -> str:
+        """GET with a plain-text answer such as `<entity set>/$count` (a bare integer)."""
+        return self._request("GET", path, params=params).text.removeprefix(chr(0xFEFF)).strip()  # Dataverse answers /$count with a UTF-8 byte order mark
+
     def get_all(self, path: str, params: dict | None = None) -> list[dict]:
         data = self.get(path, params)
         rows = list(data.get("value", []))

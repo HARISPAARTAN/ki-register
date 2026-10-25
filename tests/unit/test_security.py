@@ -190,3 +190,46 @@ def test_ensure_business_units_with_a_known_root_reads_the_list_once():
         return_value=httpx.Response(200, json={"value": [{"businessunitid": ROOT, "name": "org"}, {"businessunitid": ENERGIE, "name": "Nordstern Energie"}]}))
     assert security.ensure_business_units(new_client(), ["Nordstern Energie"], ROOT) == {"Nordstern Energie": ENERGIE}
     assert route.call_count == 1
+
+
+def test_owner_role_is_defined_read_only_for_every_table():
+    role = next(r for r in DEFS.security.roles if r.name == security.OWNER_ROLE)
+    wanted = security.wanted_privileges(role, [t.schema for t in DEFS.tables])
+    assert set(wanted) == {f"prvRead{t.schema}" for t in DEFS.tables} and set(wanted.values()) == {"Basic"}
+
+
+@respx.mock
+def test_owner_teams_are_created_with_the_role_of_their_unit():
+    respx.get(API + "WhoAmI").respond(200, json={"UserId": "app-user"})
+    respx.get(API + "teams").respond(200, json={"value": []})
+    respx.get(API + "roles").respond(200, json={"value": [{"roleid": "role-copy"}]})
+    respx.get(API + f"teams({NEW})/teamroles_association").respond(200, json={"value": []})
+    create = respx.post(API + "teams").mock(return_value=httpx.Response(204, headers={"OData-EntityId": API + f"teams({NEW})"}))
+    assign = respx.post(API + f"teams({NEW})/teamroles_association/$ref").mock(return_value=httpx.Response(204))
+    assert security.ensure_owner_teams(new_client(), {"Nordstern Energie": ENERGIE}) == {"Nordstern Energie": NEW}
+    body = json.loads(create.calls[0].request.content)
+    assert body["name"] == "Nordstern Energie Datenbesitz" and body["teamtype"] == 0
+    assert body["businessunitid@odata.bind"] == f"/businessunits({ENERGIE})" and body["administratorid@odata.bind"] == "/systemusers(app-user)"
+    assert "MSCRM.SolutionUniqueName" not in create.calls[0].request.headers
+    assert json.loads(assign.calls[0].request.content) == {"@odata.id": API + "roles(role-copy)"}
+
+
+@respx.mock
+def test_owner_teams_are_idempotent():
+    respx.get(API + "WhoAmI").respond(200, json={"UserId": "app-user"})
+    respx.get(API + "teams").respond(200, json={"value": [{"teamid": "t1"}]})
+    respx.get(API + "roles").respond(200, json={"value": [{"roleid": "role-copy"}]})
+    respx.get(API + "teams(t1)/teamroles_association").respond(200, json={"value": [{"roleid": "role-copy"}]})
+    create = respx.post(API + "teams").mock(return_value=httpx.Response(204))
+    assign = respx.post(API + "teams(t1)/teamroles_association/$ref").mock(return_value=httpx.Response(204))
+    assert security.ensure_owner_teams(new_client(), {"Nordstern Energie": ENERGIE}) == {"Nordstern Energie": "t1"}
+    assert create.call_count == 0 and assign.call_count == 0
+
+
+@respx.mock
+def test_missing_owner_role_in_the_unit_raises_after_waiting():
+    respx.get(API + "WhoAmI").respond(200, json={"UserId": "app-user"})
+    respx.get(API + "teams").respond(200, json={"value": [{"teamid": "t1"}]})
+    respx.get(API + "roles").respond(200, json={"value": []})
+    with pytest.raises(RuntimeError, match="nst Datenbesitz"):
+        security.ensure_owner_teams(new_client(), {"Nordstern Energie": ENERGIE})

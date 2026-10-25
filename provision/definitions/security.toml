@@ -33,6 +33,13 @@ nst_mitarbeiter = { read = "Local" }
 nst_organisation = { read = "Local" }
 nst_anwendungsfall = { read = "Local" }
 
+[[role]]
+name = "nst Datenbesitz"
+# Role of the owner teams only (src/kiregister/security.py: ensure_owner_teams), never assigned to a user. A team that owns records needs
+# read on the table, otherwise the assignment fails with 0x80040299. The teams have no members, so nobody inherits this read access.
+[role.tables]
+"*" = { read = "Basic" }
+
 [column_security]
 profile = "nst KI-Governance Felder"
 columns = [{ table = "nst_kisystem", column = "nst_internebewertung" }]

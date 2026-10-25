@@ -1,0 +1,22 @@
+key,org,nst_name,nst_Organisation,nst_funktion,nst_email,nst_kiverantwortlich
+PM-HARTWIG,PM,Lena Hartwig,PM,Leiterin Digitalisierung,lena.hartwig@nordstern.example,1
+PM-BRANDTNER,PM,Jonas Brandtner,PM,Bauleiter,jonas.brandtner@nordstern.example,0
+PM-YILMAZ,PM,Fatma Yilmaz,PM,Projektsteuerin,fatma.yilmaz@nordstern.example,0
+PM-WIEGAND,PM,Torben Wiegand,PM,Leiter Marketing und Vertrieb,torben.wiegand@nordstern.example,0
+PM-OSTERMANN,PM,Svenja Ostermann,PM,Leiterin Personal,svenja.ostermann@nordstern.example,0
+PM-LINDHORST,PM,Kai-Uwe Lindhorst,PM,IT-Administrator,kai-uwe.lindhorst@nordstern.example,0
+PM-PETZOLD,PM,Marlene Petzold,PM,Datenschutzbeauftragte,marlene.petzold@nordstern.example,0
+EN-AYDIN,EN,Merve Aydin,EN,Leiterin Netzdigitalisierung,merve.aydin@nordstern.example,1
+EN-DALLMANN,EN,Henrik Dallmann,EN,Leiter Netzleitstelle,henrik.dallmann@nordstern.example,0
+EN-WAGENFELD,EN,Ines Wagenfeld,EN,Leiterin Kundenservice,ines.wagenfeld@nordstern.example,0
+EN-KOLBE,EN,Rasmus Kolbe,EN,Leiter Asset Management,rasmus.kolbe@nordstern.example,0
+EN-KAYA,EN,Dilara Kaya,EN,Vertriebscontrolling,dilara.kaya@nordstern.example,0
+EN-TESSMER,EN,Björn Tessmer,EN,Leiter IT-Betrieb,bjoern.tessmer@nordstern.example,0
+EN-ROSENTHAL,EN,Anneke Rosenthal,EN,Datenschutz und Compliance,anneke.rosenthal@nordstern.example,0
+KL-OBERLAENDER,KL,Dr. Sina Oberländer,KL,Oberärztin Medizinische Informatik,sina.oberlaender@nordstern.example,1
+KL-REINHOLT,KL,Prof. Dr. Matthias Reinholt,KL,Chefarzt Radiologie,matthias.reinholt@nordstern.example,0
+KL-FALKENBERG,KL,Dr. Leona Falkenberg,KL,Leitende Ärztin Zentrale Notaufnahme,leona.falkenberg@nordstern.example,0
+KL-NOWACK,KL,Jörg Nowack,KL,Pflegedirektor,joerg.nowack@nordstern.example,0
+KL-SIEVERS,KL,Katrin Sievers,KL,Leiterin Patientenmanagement,katrin.sievers@nordstern.example,0
+KL-BALTACI,KL,Emre Baltaci,KL,Leiter Klinik-IT,emre.baltaci@nordstern.example,0
+KL-WITTKOPP,KL,Dr. Helene Wittkopp,KL,Datenschutzbeauftragte,helene.wittkopp@nordstern.example,0
