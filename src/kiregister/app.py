@@ -13,7 +13,9 @@ log = logging.getLogger(__name__)
 FORM_MAIN, FORM_DASHBOARD = 2, 0
 APP_CLIENT_TYPE_UCI = 4
 # AddAppComponents accepts {"@odata.type": ".entity", "entityid": <MetadataId>} but ignores the id (any GUID, also the zero GUID, gives a
-# component that points at the table "entity" itself; ADR-002). Tables therefore reach the app through the site map only.
+# component that points at the table "entity" itself; ADR-002). The tables therefore become app components through the solution import
+# (AppModuleComponent type 1 in solution/src/AppModules/nst_kiregister/AppModule.xml, imported by import-dev.yml or deploy-test.yml);
+# `apply` leaves them alone, and until that import the site map is the only way they reach the app.
 ADD_ENTITY_COMPONENTS = False
 DEFAULT_APP_ICON = "953b9fac-1e5e-e611-80d6-00155ded156f"  # webresource of the stock app icon (required on create)
 
@@ -206,11 +208,15 @@ def ensure_app_module(client: DataverseClient, settings: Settings, defs: Definit
     return app_id
 
 
+def validation_issues(client: DataverseClient, app_id: str) -> list[dict]:
+    """Every issue reported by the ValidateApp function, warnings included."""
+    result = client.get(f"ValidateApp(AppModuleId={app_id})")
+    return result.get("AppValidationResponse", {}).get("ValidationIssueList", [])
+
+
 def validate_app(client: DataverseClient, app_id: str) -> list[dict]:
     """Issues of type Error reported by the ValidateApp function (warnings are ignored)."""
-    result = client.get(f"ValidateApp(AppModuleId={app_id})")
-    issues = result.get("AppValidationResponse", {}).get("ValidationIssueList", [])
-    return [v for v in issues if v.get("ErrorType") == "Error"]
+    return [v for v in validation_issues(client, app_id) if v.get("ErrorType") == "Error"]
 
 
 def apply_app(client: DataverseClient, settings: Settings, defs: Definitions) -> dict:

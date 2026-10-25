@@ -195,6 +195,7 @@ def test_validate_app_returns_only_errors():
     respx.get(API + f"ValidateApp(AppModuleId={APP_ID})").respond(200, json={"AppValidationResponse": {"ValidationSuccess": True, "ValidationIssueList": [
         {"ErrorType": "Warning", "DisplayName": "w"}, {"ErrorType": "Error", "DisplayName": "e"}]}})
     assert app.validate_app(new_client(), APP_ID) == [{"ErrorType": "Error", "DisplayName": "e"}]
+    assert app.validation_issues(new_client(), APP_ID) == [{"ErrorType": "Warning", "DisplayName": "w"}, {"ErrorType": "Error", "DisplayName": "e"}]
 
 
 @respx.mock

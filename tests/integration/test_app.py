@@ -48,9 +48,15 @@ def _components(client, app_id):
     return sorted((x["componenttype"], x["objectid"]) for x in client.get(f"RetrieveAppComponents(AppModuleId={app_id})")["value"])
 
 
-def test_no_stray_table_components_and_our_forms_and_views_are_the_defaults(client, settings, defs):
+def test_the_tables_are_app_components_and_validate_app_reports_no_issue(client, settings, defs):
+    """ADR-002: AddAppComponents cannot add tables on this org; the solution import (AppModuleComponent type 1) does. Without it
+    ValidateApp warns about every component ("App does not reference at least one entity")."""
     app_id = _app_id(client, settings)
-    assert [c for c in _components(client, app_id) if c[0] == 1] == []  # ADR-002: tables reach the app through the site map
+    assert [c[1] for c in _components(client, app_id) if c[0] == 1] == sorted(app.entity_metadata_ids(client, defs).values())
+    assert app.validation_issues(client, app_id) == []
+
+
+def test_our_forms_and_views_are_the_only_defaults_of_each_table(client, defs):
     for t in defs.tables:
         forms = client.get_all("systemforms", {"$select": "name,isdefault", "$filter": f"objecttypecode eq '{t.schema}' and type eq 2"})
         assert [f["name"] for f in forms if f["isdefault"]] == [f"{t.display} Hauptformular"], t.schema
