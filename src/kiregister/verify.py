@@ -27,8 +27,23 @@ def _owner_invariants(client: DataverseClient, defs: Definitions, teams: dict[st
     return problems
 
 
+def _column_security(client: DataverseClient, defs: Definitions) -> list[str]:
+    """The column security profile and its field permissions (both are solution components)."""
+    cs = defs.security.column_security
+    profile = client.find_one("fieldsecurityprofiles", f"name eq '{cs.profile}'", "fieldsecurityprofileid")
+    if not profile:
+        return [f"Spaltensicherheitsprofil {cs.profile}"]
+    permissions = {(p["entityname"], p["attributelogicalname"]) for p in client.get_all(
+        "fieldpermissions", {"$select": "entityname,attributelogicalname", "$filter": f"_fieldsecurityprofileid_value eq {profile['fieldsecurityprofileid']}"})}
+    return [f"Spaltenberechtigung {table}.{column}" for table, column in cs.columns if (table, column) not in permissions]
+
+
 def run_verify(client: DataverseClient, settings: Settings, defs: Definitions, expect_seed: bool = True) -> list[str]:
-    """Human-readable deviations from the definitions (and the seed CSVs); an empty list means everything matches."""
+    """Human-readable deviations from the definitions (and the seed CSVs); an empty list means everything matches.
+
+    `expect_seed=False` checks the solution components only: tables, columns, choices, relationships, roles, the column security profile
+    and the app module. Business units, owner teams, their membership and the seed are not solution components, so an environment that
+    only received the managed solution (Nordstern Test, `deploy-test.yml`) has none of them (ADR-003)."""
     problems = []
     entities = {e["LogicalName"] for e in client.get("EntityDefinitions", {"$select": "LogicalName"})["value"]}
     missing_tables = set()
@@ -46,14 +61,15 @@ def run_verify(client: DataverseClient, settings: Settings, defs: Definitions, e
     problems += [f"Beziehung {r.schema}" for r in defs.relationships if r.schema not in rels]
     roles = {r["name"] for r in client.get_all("roles", {"$select": "name"})}
     problems += [f"Rolle {r.name}" for r in defs.security.roles if r.name not in roles]
-    bus = {b["name"] for b in client.get("businessunits", {"$select": "name"})["value"]}
-    problems += [f"Unternehmenseinheit {b}" for b in defs.security.business_units if b not in bus]
-    teams = {t["name"]: t["teamid"] for t in client.get_all("teams", {"$select": "teamid,name"})}
-    problems += [f"Team {owner_team_name(b)}" for b in defs.security.business_units if owner_team_name(b) not in teams]
-    problems += _owner_invariants(client, defs, teams)
+    problems += _column_security(client, defs)
     if not find_app_module(client, app_unique_name(settings, defs)):
         problems.append("App-Modul")
     if expect_seed:
+        bus = {b["name"] for b in client.get("businessunits", {"$select": "name"})["value"]}
+        problems += [f"Unternehmenseinheit {b}" for b in defs.security.business_units if b not in bus]
+        teams = {t["name"]: t["teamid"] for t in client.get_all("teams", {"$select": "teamid,name"})}
+        problems += [f"Team {owner_team_name(b)}" for b in defs.security.business_units if owner_team_name(b) not in teams]
+        problems += _owner_invariants(client, defs, teams)
         data = read_seed(settings.seed_dir)
         for table in ORDER:
             if table in missing_tables:

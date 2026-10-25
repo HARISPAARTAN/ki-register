@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import sys
 from typing import Annotated
 
@@ -17,6 +18,7 @@ from .definitions import load_definitions
 app = typer.Typer(help="Nordstern KI-Register: Dataverse-Provisionierung als Code.", no_args_is_help=True)
 EnvOpt = Annotated[str, typer.Option("--env", help="Umgebung aus config.toml: dev oder test")]
 ONLY_CHOICES = ("metadata", "security", "app")
+NO_SEED_VARIABLE = "KIREGISTER_VERIFY_NO_SEED"  # "1": verify checks solution components only (deploy-test.yml)
 
 
 @app.callback()
@@ -81,10 +83,16 @@ def seed(env: EnvOpt = "dev", stichtag: Annotated[str | None, typer.Option("--st
 
 @app.command()
 def verify(env: EnvOpt = "dev") -> None:
-    """Pruefen, ob Metadaten, Sicherheit, App und Seed dem Soll entsprechen; Exit-Code 1 bei Abweichung."""
+    """Pruefen, ob Metadaten, Sicherheit, App und Seed dem Soll entsprechen; Exit-Code 1 bei Abweichung.
+
+    Mit KIREGISTER_VERIFY_NO_SEED=1 werden nur Loesungskomponenten geprueft (Tabellen, Spalten, Auswahlfelder, Beziehungen, Rollen,
+    Spaltensicherheitsprofil, App-Modul), nicht Unternehmenseinheiten, Besitzerteams und Seed: die Testumgebung erhaelt nur die Loesung."""
     from .verify import run_verify
+    expect_seed = os.environ.get(NO_SEED_VARIABLE, "").strip().lower() not in ("1", "true", "yes")
     client, settings, defs = _client(env)
-    failures = run_verify(client, settings, defs)
+    if not expect_seed:
+        typer.echo(f"verify: nur Loesungskomponenten ({NO_SEED_VARIABLE} gesetzt), ohne Unternehmenseinheiten, Besitzerteams und Seed")
+    failures = run_verify(client, settings, defs, expect_seed=expect_seed)
     for f in failures:
         typer.echo(f"FEHLT: {f}")
     typer.echo("verify: ok" if not failures else f"verify: {len(failures)} Abweichungen")

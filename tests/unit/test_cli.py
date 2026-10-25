@@ -133,6 +133,43 @@ def test_role_lookup_falls_back_to_the_name():
     assert "System%20Administrator" in str(roles.calls[1].request.url) or "System+Administrator" in str(roles.calls[1].request.url)
 
 
+def stub_verify(monkeypatch, failures=()):
+    """verify without Dataverse: records the arguments of run_verify and returns the given failures."""
+    from kiregister import cli
+    from kiregister import verify as verify_module
+    seen = {}
+
+    def fake_run_verify(client, settings, defs, expect_seed=True):
+        seen["expect_seed"] = expect_seed
+        return list(failures)
+
+    monkeypatch.setattr(cli, "_client", lambda env: (object(), object(), object()))
+    monkeypatch.setattr(verify_module, "run_verify", fake_run_verify)
+    return seen
+
+
+@pytest.mark.parametrize("value, expect_seed", [(None, True), ("", True), ("0", True), ("1", False), (" TRUE ", False), ("yes", False)])
+def test_verify_checks_solution_components_only_when_no_seed_is_set(monkeypatch, value, expect_seed):
+    seen = stub_verify(monkeypatch)
+    if value is None:
+        monkeypatch.delenv("KIREGISTER_VERIFY_NO_SEED", raising=False)
+    else:
+        monkeypatch.setenv("KIREGISTER_VERIFY_NO_SEED", value)
+    result = runner.invoke(app, ["verify", "--env", "test"])
+    assert result.exit_code == 0 and "verify: ok" in result.output
+    assert seen["expect_seed"] is expect_seed
+    assert ("nur Loesungskomponenten" in result.output) is (not expect_seed)
+
+
+@pytest.mark.parametrize("no_seed", [False, True])
+def test_verify_failures_give_exit_code_1_in_both_modes(monkeypatch, no_seed):
+    stub_verify(monkeypatch, failures=["Tabelle nst_schulung", "Rolle nst Leser"])
+    monkeypatch.setenv("KIREGISTER_VERIFY_NO_SEED", "1" if no_seed else "0")
+    result = runner.invoke(app, ["verify", "--env", "test"])
+    assert result.exit_code == 1
+    assert "FEHLT: Tabelle nst_schulung" in result.output and "FEHLT: Rolle nst Leser" in result.output and "verify: 2 Abweichungen" in result.output
+
+
 def test_verbose_scopes_debug_to_the_kiregister_logger():
     import logging
     runner.invoke(app, ["apply", "--help"])

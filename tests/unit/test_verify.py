@@ -17,6 +17,7 @@ SETTINGS = load_settings("dev", ROOT)
 DATA = read_seed(ROOT / "data" / "seed")
 API = "https://verify-test.crm4.dynamics.com/api/data/v9.2/"
 UNITS = DEFS.security.business_units
+PROFILE = DEFS.security.column_security.profile
 
 
 class Tokens:
@@ -25,16 +26,21 @@ class Tokens:
 
 
 def mock_environment(skip_table=None, skip_attribute=None, skip_choice=None, skip_relationship=None, skip_role=None, skip_unit=None,
-                     skip_team=None, no_app=False, counts=None, team_members=None, role_holders=0):
-    """Everything the definitions ask for exists, with the seed counts of the CSVs unless `counts` overrides them."""
+                     skip_team=None, no_app=False, counts=None, team_members=None, role_holders=0, skip_profile=False, skip_permission=False,
+                     solution_only=False):
+    """Everything the definitions ask for exists, with the seed counts of the CSVs unless `counts` overrides them.
+
+    `solution_only` models Nordstern Test after the managed import: the solution components exist, but there are no business units,
+    owner teams or seed, and no route for them is registered (a request for one fails the test as unmocked)."""
     tables = [t for t in DEFS.tables if t.schema != skip_table]
     respx.get(API + "EntityDefinitions").respond(200, json={"value": [{"LogicalName": t.schema} for t in tables]})
     for t in tables:
         names = [c.schema for c in t.columns] + [r.lookup.logical for r in DEFS.lookups_of(t.schema)]
         names = [n for n in names if n != skip_attribute]
         respx.get(API + f"EntityDefinitions(LogicalName='{t.schema}')/Attributes").respond(200, json={"value": [{"LogicalName": n} for n in names]})
-        respx.get(API + f"EntityDefinitions(LogicalName='{t.schema}')").respond(200, json={"EntitySetName": t.schema + "s"})
-        respx.get(API + f"{t.schema}s/$count").respond(200, text=str((counts or {}).get(t.schema, len(DATA[t.schema]))))
+        if not solution_only:
+            respx.get(API + f"EntityDefinitions(LogicalName='{t.schema}')").respond(200, json={"EntitySetName": t.schema + "s"})
+            respx.get(API + f"{t.schema}s/$count").respond(200, text=str((counts or {}).get(t.schema, len(DATA[t.schema]))))
     respx.get(API + "GlobalOptionSetDefinitions").respond(200, json={"value": [{"Name": c.schema} for c in DEFS.choices if c.schema != skip_choice]})
     respx.get(API + "RelationshipDefinitions").respond(200, json={"value": [{"SchemaName": r.schema} for r in DEFS.relationships if r.schema != skip_relationship]})
     role_rows = [{"name": r.name, "roleid": f"role-{i}"} for i, r in enumerate(DEFS.security.roles) if r.name != skip_role]
@@ -46,6 +52,14 @@ def mock_environment(skip_table=None, skip_attribute=None, skip_choice=None, ski
         return httpx.Response(200, json={"value": rows})
 
     respx.get(API + "roles").mock(side_effect=roles)
+    column_security = DEFS.security.column_security
+    respx.get(API + "fieldsecurityprofiles").respond(200, json={"value": [] if skip_profile else [{"fieldsecurityprofileid": "profile-1"}]})
+    respx.get(API + "fieldpermissions").respond(200, json={"value": [] if skip_permission else [
+        {"entityname": table, "attributelogicalname": column} for table, column in column_security.columns]})
+    respx.get(API + "appmodules").respond(200, json={"value": [] if no_app else [{"appmoduleid": "a1"}]})
+    respx.get(API + "appmodules/Microsoft.Dynamics.CRM.RetrieveUnpublishedMultiple()").respond(200, json={"value": []})
+    if solution_only:
+        return
     for rid in [r["roleid"] for r in role_rows + owner_copies]:
         holders = [{"systemuserid": "u1"}] * role_holders if rid == "copy-0" else []
         respx.get(API + f"roles({rid})/systemuserroles_association").respond(200, json={"value": holders})
@@ -55,8 +69,6 @@ def mock_environment(skip_table=None, skip_attribute=None, skip_choice=None, ski
     for i in range(len(UNITS)):
         members = [{"systemuserid": "u9"}] * (team_members or 0) if i == 0 else []
         respx.get(API + f"teams(team-{i})/teammembership_association").respond(200, json={"value": members})
-    respx.get(API + "appmodules").respond(200, json={"value": [] if no_app else [{"appmoduleid": "a1"}]})
-    respx.get(API + "appmodules/Microsoft.Dynamics.CRM.RetrieveUnpublishedMultiple()").respond(200, json={"value": []})
 
 
 def run(**kwargs):
@@ -90,6 +102,8 @@ def test_missing_table_without_the_seed_check():
     ({"skip_role": "nst Leser"}, ["Rolle nst Leser"]),
     ({"skip_unit": "Nordstern Energie"}, ["Unternehmenseinheit Nordstern Energie"]),
     ({"skip_team": "Nordstern Klinikum Datenbesitz"}, ["Team Nordstern Klinikum Datenbesitz"]),
+    ({"skip_profile": True}, [f"Spaltensicherheitsprofil {PROFILE}"]),
+    ({"skip_permission": True}, [f"Spaltenberechtigung {table}.{column}" for table, column in DEFS.security.column_security.columns]),
     ({"no_app": True}, ["App-Modul"]),
     ({"counts": {"nst_kisystem": 19}}, ["Seed nst_kisystem: 19 statt mindestens 20 (kisysteme.csv)"]),
 ])
@@ -97,6 +111,28 @@ def test_missing_table_without_the_seed_check():
 def test_each_kind_of_deviation_is_reported(kwargs, expected):
     mock_environment(**kwargs)
     assert sorted(run()) == sorted(expected)
+
+
+@respx.mock
+def test_solution_only_mode_asks_for_no_business_unit_owner_team_membership_or_seed_count():
+    mock_environment(solution_only=True)  # a request for any of them is unmocked and fails the test
+    assert run(expect_seed=False) == []
+
+
+@pytest.mark.parametrize("kwargs, expected", [
+    ({"skip_table": "nst_schulung"}, ["Tabelle nst_schulung"]),
+    ({"skip_attribute": "nst_zweck"}, ["Spalte nst_kisystem.nst_zweck", "Spalte nst_anwendungsfall.nst_zweck"]),
+    ({"skip_choice": "nst_risikoklasse"}, ["Auswahlfeld nst_risikoklasse"]),
+    ({"skip_relationship": "nst_kisystem_massnahme"}, ["Beziehung nst_kisystem_massnahme"]),
+    ({"skip_role": "nst Leser"}, ["Rolle nst Leser"]),
+    ({"skip_profile": True}, [f"Spaltensicherheitsprofil {PROFILE}"]),
+    ({"skip_permission": True}, [f"Spaltenberechtigung {table}.{column}" for table, column in DEFS.security.column_security.columns]),
+    ({"no_app": True}, ["App-Modul"]),
+])
+@respx.mock
+def test_solution_only_mode_still_reports_every_missing_solution_component(kwargs, expected):
+    mock_environment(solution_only=True, **kwargs)
+    assert sorted(run(expect_seed=False)) == sorted(expected)
 
 
 @respx.mock
