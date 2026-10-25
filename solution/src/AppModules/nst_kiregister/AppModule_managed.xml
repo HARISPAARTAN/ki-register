@@ -46,6 +46,9 @@
     <AppModuleComponent type="62" schemaName="nst_kiregister_sitemap" />
   </AppModuleComponents>
   <AppModuleRoleMaps>
+    <Role id="{3a81878d-8fd0-f111-a05d-002248db5f3f}" />
+    <Role id="{eb80878d-8fd0-f111-a05d-002248db5f3f}" />
+    <Role id="{5381878d-8fd0-f111-a05d-002248db5f3f}" />
     <Role id="{627090ff-40a3-4053-8790-584edc5be201}" />
     <Role id="{119f245c-3cc8-4b62-b31c-d1a046ced15d}" />
   </AppModuleRoleMaps>
