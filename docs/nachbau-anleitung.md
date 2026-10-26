@@ -28,7 +28,7 @@ Wichtig:
 - **Kein volles `apply` vor dem Import.** `apply` ohne `--only` ist der Weg der Code-first-Entwicklung (so ist Dev entstanden). Neben einem Import würde es voraussichtlich Ansichten und Formulare doppelt anlegen, weil deren IDs je Umgebung verschieden sind.
 - **Der Import vor `verify`.** `AddAppComponents` kann die Tabellen nicht zu App-Komponenten machen (ADR-002); das leistet der Lösungsimport, und `verify` verlangt es.
 - **Hat die Umgebung Änderungen, die noch nicht im Repository stehen,** läuft vorher `export-solution.yml`: `import-dev.yml` überschreibt mit `force-overwrite`.
-- **Test** erhält die Lösung über `deploy-test.yml`. Von den Befehlen läuft dort nur `kiregister apply --env test --only auditing` (Schritt 4), weil es allein die Organisationseinstellung berührt; `verify` verlangt den Schalter auch in Test, eine frische Testumgebung braucht ihn also vor dem Lauf von `deploy-test.yml` (ADR-003).
+- **Test** erhält die Lösung über `deploy-test.yml`. Von den Befehlen laufen dort nur `kiregister bootstrap --env test` (der Anwendungsbenutzer), `kiregister apply --env test --only auditing` (Schritt 4, weil es allein die Organisationseinstellung berührt) und `kiregister verify --env test` mit `KIREGISTER_VERIFY_NO_SEED=1`, das nur Lösungskomponenten und den Auditing-Schalter prüft; kein anderer `apply`-Teil und kein `seed`. `verify` verlangt den Schalter auch in Test, eine frische Testumgebung braucht ihn also vor dem Lauf von `deploy-test.yml` (ADR-003).
 - Nach dem Import, vor den Benutzerzuweisungen, steht noch der Portalschritt aus Teil B, Schritt 7 an (Rollen und Profil den Benutzern zuweisen). Das Auditing der Umgebung setzt Schritt 4.
 
 ## Teil B: Von Hand im Maker-Portal

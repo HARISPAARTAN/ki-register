@@ -98,7 +98,7 @@ def verify(env: EnvOpt = "dev") -> None:
     expect_seed = os.environ.get(NO_SEED_VARIABLE, "").strip().lower() not in ("1", "true", "yes")
     client, settings, defs = _client(env)
     if not expect_seed:
-        typer.echo(f"verify: nur Loesungskomponenten ({NO_SEED_VARIABLE} gesetzt), ohne Unternehmenseinheiten, Besitzerteams und Seed")
+        typer.echo(f"verify: nur Loesungskomponenten und Auditing-Schalter ({NO_SEED_VARIABLE} gesetzt), ohne Unternehmenseinheiten, Besitzerteams und Seed")
     failures = run_verify(client, settings, defs, expect_seed=expect_seed)
     for f in failures:
         typer.echo(f"FEHLT: {f}")

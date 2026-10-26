@@ -213,7 +213,7 @@ def test_verify_checks_solution_components_only_when_no_seed_is_set(monkeypatch,
     result = runner.invoke(app, ["verify", "--env", "test"])
     assert result.exit_code == 0 and "verify: ok" in result.output
     assert seen["expect_seed"] is expect_seed
-    assert ("nur Loesungskomponenten" in result.output) is (not expect_seed)
+    assert ("nur Loesungskomponenten und Auditing-Schalter" in result.output) is (not expect_seed)
 
 
 @pytest.mark.parametrize("no_seed", [False, True])
